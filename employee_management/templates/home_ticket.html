@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
+    <style>
+        body {
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 56px; /* Adjust according to the height of the navbar */
+            width: 250px;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            padding: 10px 15px;
+            display: block;
+            color: #333;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background-color: #ddd;
+        }
+        .main-content {
+            margin-left: 250px; /* Space for sidebar */
+            padding: 20px;
+        }
+        .ticket-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ticket-row p {
+            margin-bottom: 0;
+            padding-right: 15px;
+        }
+        .collapse {
+            margin-top: 10px;
+        }
+        /* Sidebar styling */
+.sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    padding: 15px;
+    color: white;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar a:hover {
+    background-color: #34495e;
+    border-radius: 4px;
+}
+
+/* Custom Dropdown Styles */
+.custom-dropdown {
+    position: relative;
+}
+
+.custom-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 10px;
+    color: white;
+    background-color: #2c3e50;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.custom-dropdown-toggle:hover {
+    background-color: #34495e;
+}
+
+.custom-dropdown-toggle h5 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.custom-dropdown-toggle i {
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+}
+
+.custom-dropdown-menu {
+    display: none;
+    background-color: #34495e;
+    border-radius: 4px;
+    margin-top: 5px;
+    padding: 10px;
+}
+
+.custom-dropdown-item {
+    display: block;
+    padding: 8px 12px;
+    color: white;
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+}
+
+.custom-dropdown-item:hover {
+    background-color: #1abc9c;
+    border-radius: 4px;
+}
+
+/* Show dropdown on toggle */
+.custom-dropdown.active .custom-dropdown-menu {
+    display: block;
+}
+
+/* Rotate icon when dropdown is active */
+.custom-dropdown.active .custom-dropdown-toggle i {
+    transform: rotate(180deg);
+}
+
+
+/* Custom Navbar Styles */
+.custom-navbar {
+    background-color: #2c3e50; /* Matches sidebar color */
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds slight shadow for depth */
+}
+
+.navbar-brand {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    color: #ffffff;
+    font-size: 16px;
+    padding: 8px 20px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: #1abc9c; /* Matches hover effect of sidebar */
+    border-radius: 4px;
+    color: #ffffff;
+}
+
+/* Navbar toggler for small screens */
+.custom-toggler {
+    border-color: #ffffff;
+}
+
+.custom-toggler .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%28255, 255, 255, 0.5%29' stroke-width='2' linecap='round' linejoin='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+
+/* Navbar title */
+.navbar-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* Centering and spacing for larger screens */
+.navbar-nav {
+    margin-left: auto; /* Aligns the items to the right */
+}
+
+.navbar-collapse {
+    justify-content: flex-end;
+}
+
+/* Additional responsiveness for mobile view */
+@media (max-width: 991px) {
+    .navbar-nav .nav-link {
+        padding: 12px;
+        text-align: center;
+    }
+}
+
+
+
+/* General Styles for Main Content */
+.main-content {
+    margin-top: 80px; /* Adjust for the fixed navbar */
+    color: #ecf0f1;
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* Ticket Card Styling */
+.ticket-card {
+    background-color: #34495e;
+    border: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Adds a soft shadow */
+    border-radius: 8px;
+}
+
+.ticket-header {
+    background-color: #1abc9c; /* Matches sidebar and navbar hover */
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 15px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.ticket-body {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding: 15px;
+}
+
+/* Latest Ticket Row */
+.ticket-row {
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Light divider */
+}
+
+.ticket-row p {
+    margin: 0;
+    padding-right: 20px;
+}
+
+/* Collapse Button Styling */
+.toggle-button {
+    background-color: #1abc9c;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-button:hover {
+    background-color: #16a085;
+    color: #ffffff;
+}
+
+/* Styling for Older Tickets */
+.old-ticket {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.old-ticket p {
+    margin: 0;
+}
+
+/* Headings */
+h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ecf0f1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ticket-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .toggle-button {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+
+
+    </style>
+
+
+
+
+
+</head>
+<body>
+    <!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top custom-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#"><h4 class="navbar-title">Postiefs</h4></a>
+        <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                {% if request.user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'view_profile' request.user.id %}">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'create_ticket' %}">Create tickets</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'user_tickets' user.id %}">View tickets</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+    <a href="/"><h5>Dashboard</h5></a>
+
+    <!-- Custom Activity Dropdown -->
+    <div class="custom-dropdown">
+        <a class="custom-dropdown-toggle" href="#" id="activityDropdown" role="button">
+            <h5>Active User <i class="fas fa-chevron-down"></i></h5>
+        </a>
+        <div class="custom-dropdown-menu" aria-labelledby="activityDropdown">
+            <a class="custom-dropdown-item" href="{% url 'employees_by_level' '1' %}">Level 1</a>
+            <a class="custom-dropdown-item" href="{% url 'employees_by_skill' 'Linux' %}">Linux</a>
+            <a class="custom-dropdown-item" href="{% url 'employees_by_skill' 'Windows' %}">Windows/Azure</a>
+            <a class="custom-dropdown-item" href="{% url 'employees_by_skill' 'AWS' %}">Network/AWS</a>
+            <a class="custom-dropdown-item" href="{% url 'employees_by_skill' 'LEVELONE' %}">LEVELONE</a>
+            <a class="custom-dropdown-item" href="{% url 'employees_by_skill' 'OCI' %}">OCI</a>
+        </div>
+    </div>
+        <a href="{% url 'employee_list' %}"><h5>Users</h5></a>
+        {% if request.user.is_authenticated and request.user.employeeprofile.is_admin %}
+        <a href="{% url 'add_employee' %}"><h5>Add User</h5></a>
+        {% endif %}
+</div>
+
+    </div>
+
+
+</div>
+
+
+<!-- Main Content -->
+<!-- Main Content -->
+<div class="main-content container mt-5">
+    <h1 class="text-white mb-4">Tickets Overview</h1>
+
+    <!-- Iterate over the logged-in user's tickets -->
+    {% for user_tickets in tickets_by_user %}
+        <div class="card mb-3 ticket-card">
+            <div class="card-header ticket-header">
+                <h3>{{ user_tickets.user.username }}</h3>
+            </div>
+
+            <div class="card-body ticket-body">
+                <!-- Display latest ticket in a row (horizontally) -->
+                {% if user_tickets.latest_ticket %}
+                    <div class="latest-ticket ticket-row d-flex justify-content-between">
+                        <p><strong>Subject:</strong> {{ user_tickets.latest_ticket.subject }}</p>
+                        <p><strong>Status:</strong> {{ user_tickets.latest_ticket.status }}</p>
+                        <p><strong>Group:</strong> {{ user_tickets.latest_ticket.group }}</p>
+                        <p><strong>Created by:</strong> {{ user_tickets.latest_ticket.created_by.username }}</p>
+                        <p><strong>Created at:</strong> {{ user_tickets.latest_ticket.created_at }}</p>
+                    </div>
+
+                    <!-- Show "View Old Tickets" button if the user has older tickets -->
+                    {% if user_tickets.older_tickets %}
+                        <button class="btn btn-secondary mt-2 toggle-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ user_tickets.user.id }}" aria-expanded="false" aria-controls="collapse-{{ user_tickets.user.id }}">
+                            View Old Tickets
+                        </button>
+
+                        <div class="collapse mt-2" id="collapse-{{ user_tickets.user.id }}">
+                            <!-- Show older tickets here in horizontal format -->
+                            {% for ticket in user_tickets.older_tickets %}
+                                <div class="old-ticket ticket-row d-flex justify-content-between mt-2">
+                                    <p><strong>Subject:</strong> {{ ticket.subject }}</p>
+                                    <p><strong>Status:</strong> {{ ticket.status }}</p>
+                                    <p><strong>Group:</strong> {{ ticket.group }}</p>
+                                    <p><strong>Created by:</strong> {{ ticket.created_by.username }}</p>
+                                    <p><strong>Created at:</strong> {{ ticket.created_at }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p>No tickets available for this user.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+
+
+    <!-- Bootstrap JS (necessary for collapsible feature) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.querySelector('.custom-dropdown-toggle').addEventListener('click', function() {
+        let dropdown = this.closest('.custom-dropdown');
+        dropdown.classList.toggle('active');
+    });
+</script>
+
+
+</body>
+</html>

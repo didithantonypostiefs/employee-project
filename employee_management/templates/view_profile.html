@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .profile-header {
+        background: linear-gradient(to right, #007bff, #0056b3);
+        color: white;
+    }
+    .profile-header h3 {
+        margin: 0;
+    }
+    .table th {
+        background-color: #f8f9fa;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .btn-custom {
+        transition: background-color 0.3s, transform 0.3s;
+    }
+    .btn-custom:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #007bff;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+</style>
+
+<div class="container-fluid mt-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            {% include 'sidebar.html' %}
+        </div>
+
+        <!-- Profile Content -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header profile-header text-center">
+                    <h3>{{ user.username }}'s Profile</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Profile Information -->
+                    <table class="table table-bordered table-hover">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Username</th>
+                                <td>{{ user.username }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">First Name</th>
+                                <td>{{ user.first_name }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Last Name</th>
+                                <td>{{ user.last_name }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Email</th>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Level</th>
+                                <td>{{ employee_profile.level }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Skill</th>
+                                <td>{{ employee_profile.skill }}</td>
+                            </tr>
+                            {% if request.user == user %}
+                            <tr>
+                                <th scope="row">Break</th>
+                                <td>
+                                    <form action="{% url 'toggle_break' %}" method="post" id="breakToggleForm" class="ml-auto">
+                                        {% csrf_token %}
+                                        <label for="breakToggle" class="switch">
+                                            <input type="checkbox" id="breakToggle" {% if employee_profile.is_on_break %}checked{% endif %}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <span id="breakStatus">
+                                            {% if employee_profile.is_on_break %}
+                                            You are currently on break.
+                                            {% else %}
+                                            You are active.
+                                            {% endif %}
+                                        </span>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4">
+                        {% if request.user == user %}
+                        <a href="{% url 'edit_user' %}" class="btn btn-warning btn-custom">Edit Profile</a>
+                        {% endif %}
+                        <a href="{% url 'user_tickets' user.id %}" class="btn btn-secondary btn-custom">View Tickets</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const breakToggle = document.getElementById('breakToggle');
+        const breakStatus = document.getElementById('breakStatus');
+        const form = document.getElementById('breakToggleForm');
+
+        if (breakToggle.checked) {
+            breakStatus.textContent = 'You are currently on break.';
+        } else {
+            breakStatus.textContent = 'You are active.';
+        }
+
+        breakToggle.addEventListener('change', function() {
+            if (breakToggle.checked) {
+                breakStatus.textContent = 'You are currently on break.';
+            } else {
+                breakStatus.textContent = 'You are active.';
+            }
+            form.submit();
+        });
+    });
+
+    document.querySelector('.custom-dropdown-toggle').addEventListener('click', function() {
+        let dropdown = this.closest('.custom-dropdown');
+        dropdown.classList.toggle('active');
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+
+
+<div class="main">
+
+<article class="content">
+<!--<h1 class="page-title">HTML</h1>-->
+<!--<p class="lead">HTML (HyperText Markup Language) is the language of the web. It allows you to create web pages and place anything you like on them (well, almost anything!).</p>-->
+<!--<p>This section of Quackit provides a list of articles and tutorials to assist with your HTML coding.</p>-->
+</article>
+
+
+
+
+
+<div class="sidebar">
+<nav>
+<ul>
+<li>
+<h3>Teams</h3>
+<ul>
+<li><a href="{% url 'employees_by_level' '1' %}">Level 1</a></li>
+<li><a href="{% url 'employees_by_skill' 'Linux' %}">Linux</a></li>
+<li><a href="{% url 'employees_by_skill' 'Windows' %}">Windows/Azure</a></li>
+<li><a href="{% url 'employees_by_skill' 'AWS' %}">Network/AWS</a></li>
+<li><a href="{% url 'employees_by_skill' 'LEVELONE' %}">Level One</a></li>
+<li><a href="{% url 'employees_by_skill' 'OCI' %}">OCI</a></li>
+
+</ul>
+</li>
+
+
+
+
+</ul>
+</nav>
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+<script src="/common/js/spectrum/spectrum.js"></script>
+<script src="/common/js/lightbox2-master/dist/js/lightbox.min.js" charset="utf-8"></script><br><br>
+{% endblock %}

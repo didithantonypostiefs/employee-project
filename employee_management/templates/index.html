@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{% static 'images/icons/favicon.ico' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'fonts/font-awesome-4.7.0/css/font-awesome.min.css' %}">
+
+    <style>
+        body {
+            background-color: #ffffff; /* White background */
+        }
+        .container-login {
+            max-width: 400px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f8f9fa; /* Light grey for the login form */
+        }
+        .login-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #343a40; /* Dark color for text */
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .login-button {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-login">
+        <h2 class="login-title">Account Login</h2>
+        <form method="post" class="validate-form">
+            {% csrf_token %}
+            <div class="input-group">
+                <input class="form-control" type="text" name="username" placeholder="User name" required>
+            </div>
+            <div class="input-group">
+                <input class="form-control" type="password" name="password" placeholder="Password" required>
+            </div>
+            <button class="btn btn-primary login-button" type="submit">Login</button>
+            <a href="{% url 'register' %}" class="btn btn-secondary login-button mt-2">Register</a>
+        </form>
+    </div>
+
+    <!-- Modal for Login Errors -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Login Error</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% if form.non_field_errors %}
+                        {{ form.non_field_errors|join:"<br>"|safe }}
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and jQuery for modal functionality -->
+    <script src="{% static 'vendor/jquery/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.min.js' %}"></script>
+
+    <!-- Script to show modal if there are errors -->
+    <script>
+        $(document).ready(function() {
+            {% if messages %}
+                $('#errorModal').modal('show');
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

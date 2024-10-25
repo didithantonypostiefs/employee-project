@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .employee-title {
+        margin-bottom: 20px;
+        color: #343a40;
+        font-weight: bold;
+    }
+    .table-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .table th {
+        background-color: #007bff;
+        color: white;
+        text-align: center;
+    }
+    .table td {
+        vertical-align: middle;
+        padding: 10px; /* Add padding to table cells for more space */
+    }
+    .activity-badge {
+        padding: 5px 10px;
+        border-radius: 12px;
+        color: white;
+    }
+    .badge-warning {
+        background-color: #ffc107;
+    }
+    .badge-success {
+        background-color: #28a745;
+    }
+    .badge-secondary {
+        background-color: #6c757d;
+    }
+    .btn-action {
+        transition: background-color 0.3s, transform 0.3s;
+        margin: 0 10px; /* Increased margin for more space */
+        padding: 8px 12px; /* Optional: add padding for bigger buttons */
+    }
+    .btn-action:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+    /* Smaller level column */
+    .level-column {
+        width: 80px; /* Adjust width as needed */
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <!-- Sidebar inclusion -->
+            {% include 'sidebar.html' %}
+        </div>
+
+        <div class="col mt-10">
+            <h2 class="employee-title">Employees - {{ filter_type }}</h2>
+
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th class="level-column">Level</th> <!-- Add class here -->
+                                <th>Skill</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees %}
+                            <tr>
+                                <td>{{ employee.user.username }}</td>
+                                <td>{{ employee.user.email }}</td>
+                                <td class="level-column">{{ employee.level }}</td> <!-- Add class here -->
+                                <td>{{ employee.skill }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'view_profile' employee.user.id %}" class="btn btn-secondary btn-action btn-sm">View Profile</a>
+                                    <a href="{% url 'view_tickets' employee.user.id %}" class="btn btn-secondary btn-action btn-sm">View Tickets</a>
+                                    {% if request.user.is_admin %}
+                                        <a href="{% url 'promote_to_admin' employee.user.id %}" class="btn btn-secondary btn-action btn-sm">Promote to admin</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelector('.custom-dropdown-toggle').addEventListener('click', function() {
+        let dropdown = this.closest('.custom-dropdown');
+        dropdown.classList.toggle('active');
+    });
+</script>
+
+{% endblock %}

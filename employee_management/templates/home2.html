@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+
+<h2>Profile Information</h2>
+<div>
+    <p>Username: {{ user.username }}</p>
+    <p>First Name: {{ user.first_name }}</p>
+    <p>Last Name: {{ user.last_name }}</p>
+    <p>Email: {{ user.email }}</p>
+    <p>Level: {{ employee_profile.level }}</p>
+    <p>Skil: {{ employee_profile.skill }}</p>
+    <a href="{% url 'edit_user' %}">Edit profile</a>
+
+</div>
+
+
+{% endblock %}
+
+<ul >
+            <li><a href="{% url 'active_users_by_skill' 'windows' %}">Windows</a></li>
+            <li><a href="{% url 'active_users_by_skill' 'linux' %}">Linux</a></li>
+            <li><a href="{% url 'active_users_by_skill' 'oci' %}">OCI</a></li>
+            <li><a href="{% url 'active_users_by_skill' 'aws' %}">AWS</a></li>
+            <li><a href="{% url 'active_users_by_skill' 'levelone' %}">Level One</a></li>
+        </ul>

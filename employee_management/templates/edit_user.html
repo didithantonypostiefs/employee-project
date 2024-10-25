@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Edit Your Information</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.as_p }}
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 10px;
+    }
+
+    .btn-primary {
+        background-color: #007bff; /* Change to your preferred blue */
+        border: none;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        transform: translateY(-2px);
+    }
+
+    h2 {
+        color: #343a40; /* Dark gray for the heading */
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        border-radius: 5px; /* Rounded edges for input fields */
+        border: 1px solid #ced4da; /* Light gray border */
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #007bff; /* Focus color for inputs */
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Shadow on focus */
+    }
+
+    .alert {
+        margin-top: 20px; /* Spacing for alerts */
+    }
+</style>
+
+{% endblock %}
