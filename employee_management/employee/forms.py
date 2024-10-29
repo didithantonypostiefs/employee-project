@@ -69,4 +69,3 @@ class TicketForm(forms.ModelForm):
         widgets = {
             'subject': forms.Textarea(attrs={'rows': 4, 'maxlength': 300}),
         }
-

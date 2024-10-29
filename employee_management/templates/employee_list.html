@@ -89,41 +89,38 @@
             </thead>
             <tbody>
                 {% for employee in employees %}
-                <tr>
-                    <td>{{ employee.user.first_name }} {{ employee.user.last_name }}</td>
-                    <td>{{ employee.user.email }}</td>
-                    <td>{{ employee.level }}</td>
-                    <td>{{ employee.skill }}</td>
-                    <td>
-                        {% if employee.is_admin %}
-                            <span class="badge badge-blue">Admin</span>
-                        {% else %}
-                            <span class="badge badge-secondary">User</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                            {% if employee.user.id == request.user.id %}
-                                {% if employee.is_on_break %}
-                                    <span class="badge badge-warning activity-badge">On Break</span>
-                                {% else %}
-                                    <span class="badge badge-success activity-badge">Active</span>
-                                {% endif %}
-                            {% else %}
-                                <span class="badge badge-secondary activity-badge">Inactive</span>
-                            {% endif %}
-                    </td>
-                    <td class="text-center">
-                            <a href="{% url 'view_profile' employee.user.id %}" class="btn btn-secondary btn-action btn-sm">View Profile</a>
-                            <a href="{% url 'view_tickets' employee.user.id %}" class="btn btn-secondary btn-action btn-sm">View Tickets</a>
-                            {% if request.user.employeeprofile.is_admin and not employee.is_admin %}
-                            <a href="{% url 'promote_to_admin' employee.user.id %}" class="btn btn-secondary btn-action btn-sm">Promote to admin</a>
-                            {% endif %}
-                        {% if request.user.employeeprofile.is_admin and employee.is_admin and employee.promoted_to_admin %}
-                        <a href="{% url 'depromote_admin' employee.user.id %}" class="btn btn-secondary btn-action btn-sm">Depromote from admin</a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
+<tr>
+    <td>{{ employee.user.first_name }} {{ employee.user.last_name }}</td>
+    <td>{{ employee.user.email }}</td>
+    <td>{{ employee.level }}</td>
+    <td>{{ employee.skill }}</td>
+    <td>
+        {% if employee.is_admin %}
+            <span class="badge badge-blue">Admin</span>
+        {% else %}
+            <span class="badge badge-secondary">User</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if employee.is_on_break %}
+            <span class="badge badge-warning activity-badge">On Break</span>
+        {% elif employee.is_active %}
+            <span class="badge badge-success activity-badge">Active</span>
+        {% else %}
+            <span class="badge badge-secondary activity-badge">Inactive</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <!-- Actions for viewing profile, tickets, and promoting to admin -->
+        <a href="{% url 'view_profile' employee.user.id %}" class="btn btn-secondary btn-sm">View Profile</a>
+        <a href="{% url 'view_tickets' employee.user.id %}" class="btn btn-secondary btn-sm">View Tickets</a>
+        {% if request.user.employeeprofile.is_admin and not employee.is_admin %}
+            <a href="{% url 'promote_to_admin' employee.user.id %}" class="btn btn-secondary btn-sm">Promote to Admin</a>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+
             </tbody>
         </table>
     </div>

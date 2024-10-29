@@ -6,11 +6,9 @@
     <title>Home</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-
-    <style>
+       <style>
         body {
             overflow-x: hidden; /* Prevent horizontal scroll */
         }
@@ -289,14 +287,9 @@ h1 {
 
 
     </style>
-
-
-
-
-
 </head>
 <body>
-    <!-- Navbar -->
+   <!-- Navbar -->
 <nav class="navbar navbar-expand-lg fixed-top custom-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="#"><h4 class="navbar-title">Postiefs</h4></a>
@@ -327,8 +320,7 @@ h1 {
     </div>
 </nav>
 
-
-    <!-- Sidebar -->
+       <!-- Sidebar -->
     <div class="sidebar">
     <a href="/"><h5>Dashboard</h5></a>
 
@@ -357,60 +349,37 @@ h1 {
 
 </div>
 
+    <!-- Main Content -->
+    <div class="main-content container mt-5">
+        <h1 class="text-white mb-4">Tickets Overview</h1>
 
-
-<!-- Main Content -->
-<div class="main-content container mt-5">
-    <h1 class="text-white mb-4">Tickets Overview</h1>
-
-    <!-- Iterate over the logged-in user's tickets -->
-    {% for user_tickets in tickets_by_user %}
-        <div class="card mb-3 ticket-card">
-            <div class="card-header ticket-header">
-                <h3>{{ user_tickets.user.username }}</h3>
-            </div>
-
-            <div class="card-body ticket-body">
-                <!-- Display latest ticket in a row (horizontally) -->
-                {% if user_tickets.latest_ticket %}
-                    <div class="latest-ticket ticket-row d-flex justify-content-between">
-                        <p><strong>Subject:</strong> {{ user_tickets.latest_ticket.subject }}</p>
-                        <p><strong>Status:</strong> {{ user_tickets.latest_ticket.status }}</p>
-                        <p><strong>Group:</strong> {{ user_tickets.latest_ticket.group }}</p>
-                        <p><strong>Created by:</strong> {{ user_tickets.latest_ticket.created_by.username }}</p>
-                        <p><strong>Created at:</strong> {{ user_tickets.latest_ticket.created_at }}</p>
+        <!-- Iterate over the tickets -->
+        {% if tickets %}
+            {% for ticket in tickets %}
+                <div class="card mb-3 ticket-card">
+                    <div class="card-header ticket-header">
+                        <h3>Ticket ID: {{ ticket.id }}</h3>
                     </div>
 
-                    <!-- Show "View Old Tickets" button if the user has older tickets -->
-                    {% if user_tickets.older_tickets %}
-                        <button class="btn btn-secondary mt-2 toggle-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ user_tickets.user.id }}" aria-expanded="false" aria-controls="collapse-{{ user_tickets.user.id }}">
-                            View Old Tickets
-                        </button>
-
-                        <div class="collapse mt-2" id="collapse-{{ user_tickets.user.id }}">
-                            <!-- Show older tickets here in horizontal format -->
-                            {% for ticket in user_tickets.older_tickets %}
-                                <div class="old-ticket ticket-row d-flex justify-content-between mt-2">
-                                    <p><strong>Subject:</strong> {{ ticket.subject }}</p>
-                                    <p><strong>Status:</strong> {{ ticket.status }}</p>
-                                    <p><strong>Group:</strong> {{ ticket.group }}</p>
-                                    <p><strong>Created by:</strong> {{ ticket.created_by.username }}</p>
-                                    <p><strong>Created at:</strong> {{ ticket.created_at }}</p>
-                                </div>
-                            {% endfor %}
+                    <div class="card-body ticket-body">
+                        <div class="ticket-row d-flex justify-content-between">
+                            <p><strong>Subject:</strong> {{ ticket.subject }}</p>
+                            <p><strong>Status:</strong> {{ ticket.status }}</p>
+                            <p><strong>Group:</strong> {{ ticket.group }}</p>
+                            <p><strong>Created by:</strong> {{ ticket.created_by.username }}</p>
+                            <p><strong>Created at:</strong> {{ ticket.created_at }}</p>
                         </div>
-                    {% endif %}
-                {% else %}
-                    <p>No tickets available for this user.</p>
-                {% endif %}
-            </div>
-        </div>
-    {% endfor %}
-</div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No tickets available for logged-in users.</p>
+        {% endif %}
+    </div>
 
 
-
-    <!-- Bootstrap JS (necessary for collapsible feature) -->
+    <!-- Bootstrap JS Bundle with Popper -->
+       <!-- Bootstrap JS (necessary for collapsible feature) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.querySelector('.custom-dropdown-toggle').addEventListener('click', function() {
@@ -418,7 +387,5 @@ h1 {
         dropdown.classList.toggle('active');
     });
 </script>
-
-
 </body>
 </html>

@@ -1,6 +1,6 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.models import User
+
 from django.contrib import auth,messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
@@ -41,29 +41,20 @@ def index(request):
 
 User = get_user_model()
 
+
 @login_required
 def home(request):
-    if request.user.is_authenticated:
-        # Get all tickets created by the logged-in user
-        tickets = Ticket.objects.filter(created_by=request.user).order_by('-created_at')
+    # Get all users who are currently logged in
+    logged_in_users = User.objects.filter(
+        employeeprofile__is_active=True)  # Assuming you use is_active to track active users
+    # Fetch tickets created by logged-in users
+    tickets = Ticket.objects.filter(created_by__in=logged_in_users).order_by('-created_at')
 
-        # If you want to categorize tickets into latest and older
-        if tickets.exists():
-            latest_ticket = tickets.first()  # Get the latest ticket
-            older_tickets = tickets[1:]  # Get all other tickets
-
-            # Prepare data for rendering
-            tickets_by_user = [{
-                'user': request.user,
-                'latest_ticket': latest_ticket,
-                'older_tickets': older_tickets
-            }]
-        else:
-            tickets_by_user = []
-    else:
-        tickets_by_user = []  # Return empty if user is not logged in
-
-    return render(request, 'home_ticket.html', {'tickets_by_user': tickets_by_user})
+    # Prepare the context for rendering the template
+    context = {
+        'tickets': tickets,
+    }
+    return render(request, 'homepage.html', context)
 
 
 
@@ -344,6 +335,36 @@ def toggle_break(request):
     user_profile.save()
     return redirect('view_profile', user_id=request.user.id)
 
+
 def employee_list_view(request):
     employees = EmployeeProfile.objects.all()
-    return render(request, 'employee_list.html', {'employees': employees, 'filter_type': 'All Employees'})
+
+    # Get all active sessions
+    sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    user_ids = []
+
+    # Get user ids from sessions
+    for session in sessions:
+        data = session.get_decoded()
+        user_ids.append(data.get('_auth_user_id', None))
+
+    # Get all logged-in users
+    logged_in_users = get_user_model().objects.filter(id__in=user_ids)
+
+    return render(request, 'employee_list.html', {
+        'employees': employees,
+        'logged_in_users': logged_in_users,
+        'filter_type': 'All Employees'
+    })
+
+from django.contrib.auth.models import User
+
+def ticket_overview_view(request):
+    # Get all users who have tickets
+    users_with_tickets = User.objects.prefetch_related('ticket_set').filter(ticket__isnull=False)
+
+    # Prepare data where each user has their own tickets
+    context = {
+        'users_with_tickets': users_with_tickets,
+    }
+    return render(request, 'homepage.html', context)
