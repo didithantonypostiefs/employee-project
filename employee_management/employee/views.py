@@ -1,7 +1,5 @@
 
-from django.shortcuts import render, redirect, get_object_or_404
-
-from django.contrib import auth,messages
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from .decorators import admin_required
@@ -9,14 +7,10 @@ from .forms import UserEditForm,EmployeeProfileForm,TicketForm
 from .models import EmployeeProfile,Ticket
 from django.http import HttpResponseForbidden
 from django.db.models import Max
-
 from django.contrib.sessions.models import Session
 from django.utils import timezone
-
 from django.contrib import auth, messages
 from django.shortcuts import render, redirect
-from .models import EmployeeProfile
-
 from django.db import IntegrityError
 
 
@@ -44,17 +38,32 @@ User = get_user_model()
 
 @login_required
 def home(request):
-    # Get all users who are currently logged in
-    logged_in_users = User.objects.filter(
-        employeeprofile__is_active=True)  # Assuming you use is_active to track active users
-    # Fetch tickets created by logged-in users
-    tickets = Ticket.objects.filter(created_by__in=logged_in_users).order_by('-created_at')
+    # Get all tickets created by all users if the user is authenticated
+    if request.user.is_authenticated:
+        all_tickets = Ticket.objects.all().order_by('-created_at')
 
-    # Prepare the context for rendering the template
-    context = {
-        'tickets': tickets,
-    }
-    return render(request, 'homepage.html', context)
+        # Prepare data for rendering
+        tickets_by_user = {}
+        for ticket in all_tickets:
+            user_id = ticket.created_by.id
+            if user_id not in tickets_by_user:
+                tickets_by_user[user_id] = {
+                    'user': ticket.created_by,
+                    'latest_ticket': ticket,
+                    'older_tickets': []
+                }
+            else:
+                tickets_by_user[user_id]['older_tickets'].append(ticket)
+
+        # Convert the dictionary to a list for rendering
+        tickets_by_user = list(tickets_by_user.values())
+    else:
+        tickets_by_user = []
+
+    return render(request, 'home_ticket.html', {'tickets_by_user': tickets_by_user})
+
+
+
 
 
 
@@ -264,15 +273,13 @@ from django.utils import timezone
 
 @login_required
 def add_employee(request):
-    # Check if the logged-in user is an admin
     if not request.user.employeeprofile.is_admin:
         messages.error(request, "You do not have permission to add employees.")
-        return redirect('home')  # Redirect to homepage or appropriate view
+        return redirect('home')
 
     if request.method == 'POST':
         form = EmployeeProfileForm(request.POST)
         if form.is_valid():
-            # Create the User object first
             user = User.objects.create_user(
                 username=form.cleaned_data['username'],
                 first_name=form.cleaned_data['first_name'],
@@ -281,19 +288,20 @@ def add_employee(request):
                 password=form.cleaned_data['password']
             )
 
-            # Create the EmployeeProfile linked to the new user
             employee_profile = EmployeeProfile.objects.create(
                 user=user,
-                level='1',  # Default to Level 1 as per your requirement
+                level='1',
                 skill=form.cleaned_data['skill'],
                 is_admin=form.cleaned_data['is_admin']
             )
             messages.success(request, "Employee added successfully!")
-            return redirect('home')  # Redirect to homepage or employee list
+            return redirect('home')
     else:
         form = EmployeeProfileForm()
 
     return render(request, 'add_employee.html', {'form': form})
+
+
 
 
 
@@ -317,7 +325,7 @@ def toggle_break_status(request):
 @login_required
 def user_profile_view(request):
     user_profile = EmployeeProfile.objects.get(user=request.user)
-    total_hours = user_profile.total_time.total_seconds() / 3600  # Convert total time to hours
+    total_hours = user_profile.total_time.total_seconds() / 3600
     return render(request, 'profile.html', {'total_hours': total_hours})
 
 
@@ -338,17 +346,11 @@ def toggle_break(request):
 
 def employee_list_view(request):
     employees = EmployeeProfile.objects.all()
-
-    # Get all active sessions
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = []
-
-    # Get user ids from sessions
     for session in sessions:
         data = session.get_decoded()
         user_ids.append(data.get('_auth_user_id', None))
-
-    # Get all logged-in users
     logged_in_users = get_user_model().objects.filter(id__in=user_ids)
 
     return render(request, 'employee_list.html', {
@@ -360,10 +362,7 @@ def employee_list_view(request):
 from django.contrib.auth.models import User
 
 def ticket_overview_view(request):
-    # Get all users who have tickets
     users_with_tickets = User.objects.prefetch_related('ticket_set').filter(ticket__isnull=False)
-
-    # Prepare data where each user has their own tickets
     context = {
         'users_with_tickets': users_with_tickets,
     }
