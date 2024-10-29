@@ -36,11 +36,14 @@ def index(request):
 User = get_user_model()
 
 
+from .signals import logged_in_users
+
 @login_required
 def home(request):
-    # Get all tickets created by all users if the user is authenticated
+    # Get the tickets for all logged-in users
     if request.user.is_authenticated:
-        all_tickets = Ticket.objects.all().order_by('-created_at')
+        logged_in_users_list = list(logged_in_users)  # Convert to a list to use in queryset filter
+        all_tickets = Ticket.objects.filter(created_by__in=logged_in_users_list).order_by('-created_at')
 
         # Prepare data for rendering
         tickets_by_user = {}
@@ -61,6 +64,7 @@ def home(request):
         tickets_by_user = []
 
     return render(request, 'home_ticket.html', {'tickets_by_user': tickets_by_user})
+
 
 
 
