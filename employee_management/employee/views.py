@@ -38,20 +38,24 @@ User = get_user_model()
 
 from .signals import logged_in_users
 
+
 @login_required
 def home(request):
-    # Get the tickets for all logged-in users
+    # Get the tickets assigned to all logged-in users
     if request.user.is_authenticated:
+        # Get the list of logged-in users who are active and not on break
         logged_in_users_list = list(logged_in_users)  # Convert to a list to use in queryset filter
-        all_tickets = Ticket.objects.filter(created_by__in=logged_in_users_list).order_by('-created_at')
+
+        # Filter tickets based on the assigned_to field, showing tickets assigned to logged-in users
+        all_tickets = Ticket.objects.filter(assigned_to__in=logged_in_users_list).order_by('-created_at')
 
         # Prepare data for rendering
         tickets_by_user = {}
         for ticket in all_tickets:
-            user_id = ticket.created_by.id
+            user_id = ticket.assigned_to.id  # Using assigned_to instead of created_by
             if user_id not in tickets_by_user:
                 tickets_by_user[user_id] = {
-                    'user': ticket.created_by,
+                    'user': ticket.assigned_to,  # Reflect the user assigned the ticket
                     'latest_ticket': ticket,
                     'older_tickets': []
                 }
@@ -63,12 +67,7 @@ def home(request):
     else:
         tickets_by_user = []
 
-    return render(request, 'home_ticket.html', {'tickets_by_user': tickets_by_user})
-
-
-
-
-
+    return render(request, 'homepage.html', {'tickets_by_user': tickets_by_user})
 
 
 def register(request):
@@ -236,12 +235,14 @@ def create_ticket(request):
 @login_required
 def user_tickets(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    tickets = Ticket.objects.filter(created_by=user)
+    # Get tickets assigned to the user, instead of tickets created by them
+    tickets = Ticket.objects.filter(assigned_to=user)
     return render(request, 'view_tickets.html', {'user': user, 'tickets': tickets})
 
 def view_tickets(request, user_id):
     user = get_object_or_404(User, pk=user_id)
-    tickets = Ticket.objects.filter(created_by=user)
+    # Get tickets assigned to the user
+    tickets = Ticket.objects.filter(assigned_to=user)
     return render(request, 'view_tickets.html', {'user': user, 'tickets': tickets})
 
 @login_required

@@ -61,7 +61,7 @@
         </div>
 
 <div class="col-md-9">
-    <h2 class="ticket-title">Tickets Created by {{ user.username }}</h2>
+    <h2 class="ticket-title">Tickets Assigned to {{ user.username }}</h2>
 
     {% if tickets %}
     <div class="table-container">
@@ -102,10 +102,10 @@
         </div>
     </div>
     {% else %}
-        <p>No tickets have been created by this user.</p>
+        <p>No tickets have been assigned to this user.</p>
     {% endif %}
 </div>
-</div>
+
 
 
 <script>
