@@ -41,6 +41,9 @@
     .badge-waiting-customer {
         background-color: #FFA500; /* Orange */
     }
+    .badge-open {
+    background-color: #007bff; /* Blue */
+    }
     .btn-action {
         transition: background-color 0.3s, transform 0.3s;
         margin: 0 5px;
@@ -70,6 +73,7 @@
                         <th>Subject</th>
                         <th>Status</th>
                         <th>Group</th>
+                        <th>Assigned To</th> <!-- New column for Assigned To -->
                         <th>Created At</th>
                         <th>Actions</th>
                     </tr>
@@ -83,6 +87,7 @@
                             <span class="badge badge-status badge-{{ ticket.status|lower }}">{{ ticket.status }}</span>
                         </td>
                         <td>{{ ticket.group }}</td>
+                        <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td> <!-- Display Assigned To -->
                         <td>{{ ticket.created_at|date:"F j, Y, g:i a" }}</td>
                         <td>
                             {% if request.user.is_superuser or request.user == ticket.created_by %}
@@ -100,8 +105,8 @@
         <p>No tickets have been created by this user.</p>
     {% endif %}
 </div>
-    </div>
 </div>
+
 
 <script>
     document.querySelector('.custom-dropdown-toggle').addEventListener('click', function() {

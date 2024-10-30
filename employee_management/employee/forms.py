@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import EmployeeProfile
 from .models import Ticket
+from django.contrib.sessions.models import Session
+from django.utils import timezone
 
 # Only Level 1 remains
 LEVEL_CHOICES = (
@@ -63,9 +65,29 @@ class UserEditForm(forms.ModelForm):
 
 
 class TicketForm(forms.ModelForm):
+    assigned_to = forms.ModelChoiceField(queryset=User.objects.none(), required=False, label="Assign to")
+
     class Meta:
         model = Ticket
-        fields = ['subject', 'status', 'group']
+        fields = ['subject', 'status', 'group', 'assigned_to']
         widgets = {
             'subject': forms.Textarea(attrs={'rows': 4, 'maxlength': 300}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Get all active sessions
+        active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+
+        # Get user ids from active sessions
+        user_ids = []
+        for session in active_sessions:
+            data = session.get_decoded()
+            user_id = data.get('_auth_user_id', None)
+            if user_id:
+                user_ids.append(user_id)
+
+        # Get users who are logged in, active, and not on break
+        logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
+        self.fields['assigned_to'].queryset = logged_in_users

@@ -6,12 +6,13 @@ from django.contrib.auth.models import User
 
 @receiver(user_logged_out)
 def set_inactive(sender, request, user, **kwargs):
-    profile = EmployeeProfile.objects.get(user=user)
-    profile.is_active = False
-    profile.save()
-
-
-
+    try:
+        profile = EmployeeProfile.objects.select_related('user').get(user=user)
+        profile.is_active = False
+        profile.save()
+    except EmployeeProfile.DoesNotExist:
+        # Handle cases where the user does not have an EmployeeProfile
+        pass
 
 
 

@@ -35,6 +35,7 @@ class EmployeeProfile(models.Model):
 class Ticket(models.Model):
     subject = models.CharField(max_length=300)
     status = models.CharField(max_length=50, choices=[
+        ('open', 'Open'),
         ('pending', 'Pending'),
         ('resolved', 'Resolved'),
         ('closed', 'Closed'),
@@ -49,6 +50,8 @@ class Ticket(models.Model):
         ('OCI', 'OCI'),
     ])
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='assigned_tickets')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
