@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 29, 2024 at 11:25 AM
+-- Generation Time: Oct 30, 2024 at 05:53 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -121,11 +121,11 @@ CREATE TABLE `auth_user` (
 
 INSERT INTO `auth_user` (`id`, `password`, `last_login`, `is_superuser`, `username`, `first_name`, `last_name`, `email`, `is_staff`, `is_active`, `date_joined`) VALUES
 (12, 'pbkdf2_sha256$600000$B2QQOVRcndLTvC5i2GDwYj$Ql7Shjmra+2rsNTQPLwnzla28oUxJ109NV7hBVt/EZE=', '2024-10-29 06:04:30.030426', 1, 'admin', '', '', 'admin@gmail.com', 1, 1, '2024-10-25 09:04:39.482323'),
-(13, 'pbkdf2_sha256$600000$f8DmTqWfeOGbTm72fd5pAb$muim+iKMHt4IGxwssxjMUdkVcytUSFNDyQSmqulHenE=', '2024-10-29 08:39:08.370251', 0, 'sanjeev', 'sanjeev', 'kumar', 'sanjeev@gmail.com', 0, 1, '2024-10-25 09:35:53.197315'),
-(14, 'pbkdf2_sha256$600000$9lThxBjICjJ4OyVvBVHWts$fAXrWQhLT+V4gf0B+N6/h9PNa9PktSdamBNzaDaazag=', '2024-10-29 09:27:43.066686', 0, 'Ajil', 'Ajil', 'TU', 'ajil@gmail.com', 0, 1, '2024-10-25 09:38:10.503884'),
-(15, 'pbkdf2_sha256$600000$pZ3F32yjPfSpXFAsaVaIfX$TX1DaGyKSpLt7CXQ4Zb14FvpPxAPFF78o4Dh+WYQRks=', '2024-10-29 09:27:05.162074', 0, 'Jayamohan', 'Jayamohan', 'x', 'jayamohan@gmail.com', 0, 1, '2024-10-25 10:57:17.559935'),
-(16, 'pbkdf2_sha256$600000$RmmQaw7LOqBnvTF00zMvoR$9Zh0gyPknaXFnzcWaYT8a7zZMbx6Kn0xNa3D7XZWvPk=', '2024-10-29 06:37:49.166024', 0, 'Georgy', 'Georgy', 'Cheriyan', 'Georgy@gmail.com', 0, 1, '2024-10-28 06:58:42.078089'),
-(17, 'pbkdf2_sha256$600000$pCIXsYCDKtCUWJ9oFE5UVx$QQRyWznGi7iG9nKIWUt8kdoCB2afDa4zgSJOmzyFlN4=', '2024-10-29 09:30:39.647185', 0, 'jobin', 'jobin', 'ps', 'jobin@gmail.com', 0, 1, '2024-10-29 05:46:56.459314'),
+(13, 'pbkdf2_sha256$600000$f8DmTqWfeOGbTm72fd5pAb$muim+iKMHt4IGxwssxjMUdkVcytUSFNDyQSmqulHenE=', '2024-10-30 03:51:44.863552', 0, 'sanjeev', 'sanjeev', 'kumar', 'sanjeev@gmail.com', 0, 1, '2024-10-25 09:35:53.197315'),
+(14, 'pbkdf2_sha256$600000$9lThxBjICjJ4OyVvBVHWts$fAXrWQhLT+V4gf0B+N6/h9PNa9PktSdamBNzaDaazag=', '2024-10-30 04:20:10.093197', 0, 'Ajil', 'Ajil', 'TU', 'ajil@gmail.com', 0, 1, '2024-10-25 09:38:10.503884'),
+(15, 'pbkdf2_sha256$600000$pZ3F32yjPfSpXFAsaVaIfX$TX1DaGyKSpLt7CXQ4Zb14FvpPxAPFF78o4Dh+WYQRks=', '2024-10-30 04:35:48.486298', 0, 'Jayamohan', 'Jayamohan', 'x', 'jayamohan@gmail.com', 0, 1, '2024-10-25 10:57:17.559935'),
+(16, 'pbkdf2_sha256$600000$RmmQaw7LOqBnvTF00zMvoR$9Zh0gyPknaXFnzcWaYT8a7zZMbx6Kn0xNa3D7XZWvPk=', '2024-10-30 03:40:21.940231', 0, 'Georgy', 'Georgy', 'Cheriyan', 'Georgy@gmail.com', 0, 1, '2024-10-28 06:58:42.078089'),
+(17, 'pbkdf2_sha256$600000$pCIXsYCDKtCUWJ9oFE5UVx$QQRyWznGi7iG9nKIWUt8kdoCB2afDa4zgSJOmzyFlN4=', '2024-10-30 04:35:02.519913', 0, 'jobin', 'jobin', 'ps', 'jobin@gmail.com', 0, 1, '2024-10-29 05:46:56.459314'),
 (18, 'pbkdf2_sha256$600000$VOGstnPjqJROKoQlMpLUAr$Z/skEG1BQUYK4yxAPvPJwSFvjfXtxsR8hl0V0kvBpfs=', NULL, 0, 'didith', 'didith', 'antony', 'didith@gmail.com', 0, 1, '2024-10-29 05:48:06.536978'),
 (23, 'pbkdf2_sha256$600000$t7ObAVGZGE0Z4dvZjdmCgf$e5WqOrVXtk78D2N65gpUGcjo2IUgWK2KKaXrrReYB3I=', NULL, 0, 'manuel', 'manuel', 'sijo', 'manuel@gmail.com', 0, 1, '2024-10-29 06:05:37.039900');
 
@@ -255,7 +255,9 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (29, 'employee', '0011_employeeprofile_total_time', '2024-10-03 05:28:39.739243'),
 (30, 'employee', '0012_employeeprofile_is_active', '2024-10-03 06:11:09.937970'),
 (31, 'employee', '0013_employeeprofile_is_on_break', '2024-10-03 07:13:46.124618'),
-(32, 'employee', '0014_employeeprofile_promoted_to_admin', '2024-10-21 09:47:05.683950');
+(32, 'employee', '0014_employeeprofile_promoted_to_admin', '2024-10-21 09:47:05.683950'),
+(33, 'employee', '0015_ticket_assigned_to', '2024-10-30 04:03:21.204753'),
+(34, 'employee', '0016_alter_ticket_status', '2024-10-30 04:34:38.209292');
 
 -- --------------------------------------------------------
 
@@ -332,22 +334,26 @@ CREATE TABLE `employee_ticket` (
   `status` varchar(50) NOT NULL,
   `group` varchar(100) NOT NULL,
   `created_at` datetime(6) NOT NULL,
-  `created_by_id` int(11) NOT NULL
+  `created_by_id` int(11) NOT NULL,
+  `assigned_to_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `employee_ticket`
 --
 
-INSERT INTO `employee_ticket` (`id`, `subject`, `status`, `group`, `created_at`, `created_by_id`) VALUES
-(8, 'dxuagdygayi', 'resolved', 'Windows', '2024-10-25 10:18:25.800686', 14),
-(9, 'gsyugcys', 'pending', 'Windows', '2024-10-25 10:19:07.172916', 14),
-(10, 'djbadyigdgsiucuhsucb hcbsygych', 'initial_response', 'Windows', '2024-10-25 10:57:52.462685', 15),
-(11, 'dgdauuhu', 'closed', 'Windows', '2024-10-25 10:58:05.930800', 15),
-(12, 'kbgijnijvbd jdnvudnv', 'waiting_on_customer', 'Windows', '2024-10-25 10:59:24.717282', 14),
-(13, 'uwduud', 'resolved', 'Windows', '2024-10-28 09:30:08.665452', 14),
-(14, 'bdyb chsvcbsucy', 'waiting_on_customer', 'Windows', '2024-10-29 08:38:12.281910', 17),
-(15, 'okfoofjijkfi', 'pending', 'Windows', '2024-10-29 08:38:28.027810', 17);
+INSERT INTO `employee_ticket` (`id`, `subject`, `status`, `group`, `created_at`, `created_by_id`, `assigned_to_id`) VALUES
+(8, 'dxuagdygayi', 'resolved', 'Windows', '2024-10-25 10:18:25.800686', 14, NULL),
+(9, 'gsyugcys', 'pending', 'Windows', '2024-10-25 10:19:07.172916', 14, NULL),
+(10, 'djbadyigdgsiucuhsucb hcbsygych', 'initial_response', 'Windows', '2024-10-25 10:57:52.462685', 15, NULL),
+(11, 'dgdauuhu', 'closed', 'Windows', '2024-10-25 10:58:05.930800', 15, NULL),
+(12, 'kbgijnijvbd jdnvudnv', 'waiting_on_customer', 'Windows', '2024-10-25 10:59:24.717282', 14, NULL),
+(13, 'uwduud', 'resolved', 'Windows', '2024-10-28 09:30:08.665452', 14, NULL),
+(14, 'bdyb chsvcbsucy', 'waiting_on_customer', 'Windows', '2024-10-29 08:38:12.281910', 17, NULL),
+(15, 'okfoofjijkfi', 'pending', 'Windows', '2024-10-29 08:38:28.027810', 17, NULL),
+(16, 'testing', 'initial_response', 'Windows', '2024-10-30 04:16:19.682430', 14, 15),
+(17, 'testing', 'pending', 'Windows', '2024-10-30 04:21:40.861268', 15, 14),
+(18, 'testing', 'open', 'Windows', '2024-10-30 04:38:12.379096', 17, 15);
 
 --
 -- Indexes for dumped tables
@@ -438,7 +444,8 @@ ALTER TABLE `employee_employeeprofile`
 --
 ALTER TABLE `employee_ticket`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `employee_ticket_created_by_id_ffc4d110_fk_auth_user_id` (`created_by_id`);
+  ADD KEY `employee_ticket_created_by_id_ffc4d110_fk_auth_user_id` (`created_by_id`),
+  ADD KEY `employee_ticket_assigned_to_id_334775e6_fk_auth_user_id` (`assigned_to_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -496,7 +503,7 @@ ALTER TABLE `django_content_type`
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `employee_employeeprofile`
@@ -508,7 +515,7 @@ ALTER TABLE `employee_employeeprofile`
 -- AUTO_INCREMENT for table `employee_ticket`
 --
 ALTER TABLE `employee_ticket`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- Constraints for dumped tables
@@ -558,6 +565,7 @@ ALTER TABLE `employee_employeeprofile`
 -- Constraints for table `employee_ticket`
 --
 ALTER TABLE `employee_ticket`
+  ADD CONSTRAINT `employee_ticket_assigned_to_id_334775e6_fk_auth_user_id` FOREIGN KEY (`assigned_to_id`) REFERENCES `auth_user` (`id`),
   ADD CONSTRAINT `employee_ticket_created_by_id_ffc4d110_fk_auth_user_id` FOREIGN KEY (`created_by_id`) REFERENCES `auth_user` (`id`);
 COMMIT;
 
