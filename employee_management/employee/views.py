@@ -41,18 +41,24 @@ from .signals import logged_in_users
 
 @login_required
 def home(request):
-    # Get the tickets assigned to all logged-in users
     if request.user.is_authenticated:
-        # Get the list of logged-in users who are active and not on break
+        # Get the list of logged-in users
         logged_in_users_list = list(logged_in_users)  # Convert to a list to use in queryset filter
 
-        # Filter tickets based on the assigned_to field, showing tickets assigned to logged-in users
-        all_tickets = Ticket.objects.filter(assigned_to__in=logged_in_users_list).order_by('-created_at')
+        # Define the statuses that should be displayed
+        status_filter = ['open', 'pending', 'waiting_on_customer', 'initial_response']
+
+        # Filter tickets assigned to the logged-in users and exclude 'Resolved' and 'Closed' statuses
+        all_tickets = Ticket.objects.filter(
+            assigned_to__in=logged_in_users_list,
+            status__in=status_filter  # Exclude 'Resolved' and 'Closed' statuses
+        ).order_by('-created_at')
 
         # Prepare data for rendering
         tickets_by_user = {}
         for ticket in all_tickets:
-            user_id = ticket.assigned_to.id  # Using assigned_to instead of created_by
+            ticket.created_at_ist = timezone.localtime(ticket.created_at)
+            user_id = ticket.assigned_to.id  # Grouping by the user assigned the ticket
             if user_id not in tickets_by_user:
                 tickets_by_user[user_id] = {
                     'user': ticket.assigned_to,  # Reflect the user assigned the ticket
@@ -68,6 +74,9 @@ def home(request):
         tickets_by_user = []
 
     return render(request, 'homepage.html', {'tickets_by_user': tickets_by_user})
+
+
+
 
 
 def register(request):
@@ -232,18 +241,28 @@ def create_ticket(request):
 
     return render(request, 'create_ticket.html', {'form': form})
 
+
 @login_required
 def user_tickets(request, user_id):
+    # Fetch tickets assigned to the user
     user = get_object_or_404(User, id=user_id)
-    # Get tickets assigned to the user, instead of tickets created by them
     tickets = Ticket.objects.filter(assigned_to=user)
-    return render(request, 'view_tickets.html', {'user': user, 'tickets': tickets})
+
+    return render(request, 'view_tickets.html', {
+        'tickets': tickets,
+        'user': user,
+    })
+
 
 def view_tickets(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     # Get tickets assigned to the user
     tickets = Ticket.objects.filter(assigned_to=user)
     return render(request, 'view_tickets.html', {'user': user, 'tickets': tickets})
+
+
+
+
 
 @login_required
 def edit_ticket(request, ticket_id):
@@ -372,3 +391,30 @@ def ticket_overview_view(request):
         'users_with_tickets': users_with_tickets,
     }
     return render(request, 'homepage.html', context)
+
+
+@login_required
+def assign_ticket(request, ticket_id):
+    # Get the ticket assigned to the current user
+    ticket = get_object_or_404(Ticket, id=ticket_id, assigned_to=request.user)
+
+    if request.method == 'POST':
+        new_assigned_user_id = request.POST.get('assigned_user')
+        new_assigned_user = get_object_or_404(User, id=new_assigned_user_id)
+
+        # Reassign the ticket
+        ticket.assigned_to = new_assigned_user
+        ticket.save()
+
+        return redirect('view_tickets', user_id=request.user.id)  # Redirect back to view tickets
+
+    # Get the list of logged-in users excluding the current user
+    logged_in_users = User.objects.filter(is_active=True).exclude(id=request.user.id)
+
+    return render(request, 'assign_ticket.html', {
+
+        'ticket': ticket,
+        'logged_in_users': logged_in_users
+    })
+
+

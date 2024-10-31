@@ -91,3 +91,5 @@ class TicketForm(forms.ModelForm):
         # Get users who are logged in, active, and not on break
         logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
         self.fields['assigned_to'].queryset = logged_in_users
+
+

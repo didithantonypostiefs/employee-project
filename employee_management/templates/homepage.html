@@ -374,7 +374,7 @@ h1 {
                             <p><strong>Group:</strong> {{ user_tickets.latest_ticket.group }}</p>
                             <p><strong>Created by:</strong> {{ user_tickets.latest_ticket.created_by.username|default:"N/A" }}</p>
                             <p><strong>Assigned to:</strong> {{ user_tickets.latest_ticket.assigned_to.username|default:"Unassigned" }}</p>
-                            <p><strong>Created at:</strong> {{ user_tickets.latest_ticket.created_at }}</p>
+                            <p><strong>Created at:</strong> {{ user_tickets.latest_ticket.created_at|date:"Y-m-d H:i:s" }}</p>
                         </div>
 
                         {% if user_tickets.older_tickets %}
@@ -394,7 +394,7 @@ h1 {
                                         <p><strong>Group:</strong> {{ ticket.group }}</p>
                                         <p><strong>Created by:</strong> {{ ticket.created_by.username|default:"N/A" }}</p>
                                         <p><strong>Assigned to:</strong> {{ ticket.assigned_to.username|default:"Unassigned" }}</p>
-                                        <p><strong>Created at:</strong> {{ ticket.created_at }}</p>
+                                        <p><strong>Created at:</strong> {{ ticket.created_at|date:"Y-m-d H:i:s" }}</p>
                                     </div>
                                 {% endfor %}
                             </div>

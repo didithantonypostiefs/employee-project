@@ -90,7 +90,8 @@
                         <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td> <!-- Display Assigned To -->
                         <td>{{ ticket.created_at|date:"F j, Y, g:i a" }}</td>
                         <td>
-                            {% if request.user.is_superuser or request.user == ticket.created_by %}
+                            {% if request.user.is_superuser or request.user == ticket.assigned_to %}
+                            <a href="{% url 'assign_ticket' ticket.id %}" class="btn btn-warning btn-sm">Assign</a>
                             <a href="{% url 'edit_ticket' ticket.id %}" class="btn btn-warning btn-action btn-sm">Edit</a>
                             <a href="{% url 'delete_ticket' ticket.id %}" class="btn btn-danger btn-action btn-sm">Delete</a>
                             {% endif %}
@@ -105,6 +106,9 @@
         <p>No tickets have been assigned to this user.</p>
     {% endif %}
 </div>
+
+
+
 
 
 

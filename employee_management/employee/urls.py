@@ -22,5 +22,6 @@ urlpatterns=[
     path('ticket/edit/<int:ticket_id>/', views.edit_ticket, name='edit_ticket'),
     path('ticket/delete/<int:ticket_id>/', views.delete_ticket, name='delete_ticket'),
     path('toggle-break/', views.toggle_break, name='toggle_break'),
+    path('assign_ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
 
 ]
