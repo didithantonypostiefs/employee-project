@@ -23,5 +23,6 @@ urlpatterns=[
     path('ticket/delete/<int:ticket_id>/', views.delete_ticket, name='delete_ticket'),
     path('toggle-break/', views.toggle_break, name='toggle_break'),
     path('assign_ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
+    path('tickets/close/<int:ticket_id>/', views.close_ticket, name='close_ticket'),
 
 ]

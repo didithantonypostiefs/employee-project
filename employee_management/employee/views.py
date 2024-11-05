@@ -1,11 +1,10 @@
-
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from .decorators import admin_required
 from .forms import UserEditForm,EmployeeProfileForm,TicketForm
 from .models import EmployeeProfile,Ticket
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.db.models import Max
 from django.contrib.sessions.models import Session
 from django.utils import timezone
@@ -63,6 +62,7 @@ def home(request):
                 tickets_by_user[user_id] = {
                     'user': ticket.assigned_to,  # Reflect the user assigned the ticket
                     'latest_ticket': ticket,
+                    'assigned_by': ticket.created_by,
                     'older_tickets': []
                 }
             else:
@@ -234,6 +234,7 @@ def create_ticket(request):
         if form.is_valid():
             ticket = form.save(commit=False)
             ticket.created_by = request.user
+            ticket.assigned_by = request.user
             ticket.save()
             return redirect('/')
     else:
@@ -283,7 +284,7 @@ def edit_ticket(request, ticket_id):
 @login_required
 def delete_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    if request.user.is_superuser or request.user == ticket.created_by:
+    if request.user.employeeprofile.is_admin:
         if request.method == 'POST':
             ticket.delete()
             return redirect('view_tickets', user_id=ticket.created_by.id)
@@ -291,6 +292,63 @@ def delete_ticket(request, ticket_id):
     else:
         return HttpResponseForbidden("You are not allowed to delete this ticket.")
 
+
+@login_required
+def close_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    # Check if the logged-in user is the user assigned to this ticket
+    if ticket.assigned_to != request.user:
+        return render(request, 'homepage.html', {
+            'error': "You are not authorized to close this ticket.",
+            'ticket_id': ticket_id,
+        })
+
+    if request.method == 'POST':
+        ticket.status = 'closed'
+        ticket.save()
+        return redirect('home')
+
+    return redirect('home')
+
+
+
+@login_required
+def assign_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    # Check if the logged-in user is the assigned user for this ticket
+    if ticket.assigned_to != request.user:
+        return render(request, 'homepage.html', {
+            'error': "You are not authorized to assign this ticket.",
+            'ticket_id': ticket_id,
+        })
+
+    if request.method == 'POST':
+        form = TicketForm(request.POST, instance=ticket)  # Bind form to the ticket instance
+        if form.is_valid():
+            ticket = form.save(commit=False)
+            new_assigned_user_id = request.POST.get('assigned_user')
+            new_assigned_user = get_object_or_404(User, id=new_assigned_user_id)
+
+            # Update the ticket's assigned user
+            ticket.assigned_to = new_assigned_user
+            ticket.assigned_by = request.user
+            ticket.save()
+
+            messages.success(request, "Ticket assigned successfully.")
+            return redirect('view_tickets', user_id=request.user.id)  # Redirect to the user's tickets page
+
+    else:
+        form = TicketForm(instance=ticket)  # Pre-fill the form with the ticket data
+
+    logged_in_users = User.objects.filter(is_active=True).exclude(id=request.user.id)
+
+    return render(request, 'assign_ticket.html', {
+        'ticket': ticket,
+        'form': form,  # Pass the form to the template
+        'logged_in_users': logged_in_users
+    })
 
 from django.utils import timezone
 
@@ -392,29 +450,5 @@ def ticket_overview_view(request):
     }
     return render(request, 'homepage.html', context)
 
-
-@login_required
-def assign_ticket(request, ticket_id):
-    # Get the ticket assigned to the current user
-    ticket = get_object_or_404(Ticket, id=ticket_id, assigned_to=request.user)
-
-    if request.method == 'POST':
-        new_assigned_user_id = request.POST.get('assigned_user')
-        new_assigned_user = get_object_or_404(User, id=new_assigned_user_id)
-
-        # Reassign the ticket
-        ticket.assigned_to = new_assigned_user
-        ticket.save()
-
-        return redirect('view_tickets', user_id=request.user.id)  # Redirect back to view tickets
-
-    # Get the list of logged-in users excluding the current user
-    logged_in_users = User.objects.filter(is_active=True).exclude(id=request.user.id)
-
-    return render(request, 'assign_ticket.html', {
-
-        'ticket': ticket,
-        'logged_in_users': logged_in_users
-    })
 
 

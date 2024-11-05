@@ -42,19 +42,22 @@ class Ticket(models.Model):
         ('waiting_on_customer', 'Waiting on Customer'),
         ('initial_response', 'Initial Response'),
     ])
-    group = models.CharField(max_length=100,choices=[
+    group = models.CharField(max_length=100, choices=[
         ('Linux', 'Linux'),
         ('Windows', 'Windows/Azure'),
         ('AWS', 'Network/AWS'),
         ('LEVELONE', 'Level One'),
         ('OCI', 'OCI'),
     ])
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='user_tickets')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_tickets')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='assigned_tickets')
+    assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='assigner_tickets')
     created_at = models.DateTimeField(auto_now_add=True)
+    note = models.TextField(blank=True)  # Add this field to hold the ticket note
+
 
     def __str__(self):
         return self.subject
-
-

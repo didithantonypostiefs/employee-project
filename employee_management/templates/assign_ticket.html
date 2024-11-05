@@ -1,20 +1,27 @@
 {% extends 'base.html' %}
+{% block content %}<br><br>
+<form method="POST">
+    {% csrf_token %}
 
-{% block content %}
-<div class="container mt-5">
-    <h2>Assign Ticket: {{ ticket.subject }}</h2>
-    <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="assigned_user">Assign to another user</label>
-            <select name="assigned_user" class="form-control" id="assigned_user">
-                {% for user in logged_in_users %}
-                    <option value="{{ user.id }}">{{ user.username }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary mt-3">Assign Ticket</button>
-    </form>
-</div>
+    {{ form.subject.errors }}
+    {{ form.subject }}<br><br>
+
+    {{ form.status.errors }}
+    {{ form.status }}<br><br>
+
+    {{ form.group.errors }}
+    {{ form.group }}<br><br>
+
+    {{ form.note.errors }}
+    {{ form.note }}<br><br>
+
+    <label for="assigned_user">Reassign to:</label>
+    <select id="assigned_user" name="assigned_user" class="form-control">
+        {% for user in logged_in_users %}
+            <option value="{{ user.id }}" {% if user == ticket.assigned_to %}selected{% endif %}>{{ user.username }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary mt-3">Reassign Ticket</button>
+</form>
 {% endblock %}
-

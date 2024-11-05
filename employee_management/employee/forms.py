@@ -69,9 +69,10 @@ class TicketForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['subject', 'status', 'group', 'assigned_to']
+        fields = ['subject', 'status', 'group', 'assigned_to', 'note']  # Include 'note' in the form
         widgets = {
             'subject': forms.Textarea(attrs={'rows': 4, 'maxlength': 300}),
+            'note': forms.Textarea(attrs={'rows': 4}),  # Add widget to display note as a textarea
         }
 
     def __init__(self, *args, **kwargs):
@@ -91,5 +92,3 @@ class TicketForm(forms.ModelForm):
         # Get users who are logged in, active, and not on break
         logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
         self.fields['assigned_to'].queryset = logged_in_users
-
-

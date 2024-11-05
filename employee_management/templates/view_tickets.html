@@ -2,55 +2,93 @@
 
 {% block content %}
 <style>
-    .ticket-title {
-        margin-bottom: 20px;
-        color: #343a40;
-        font-weight: bold;
-    }
-    .table-container {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .table th {
-        background-color: #007bff;
-        color: white;
-        text-align: center;
-    }
-    .table td {
-        vertical-align: middle;
-    }
-    .badge-status {
-        padding: 5px 10px;
-        border-radius: 12px;
-        color: white;
-    }
-    .badge-pending {
-        background-color: #ffc107; /* Yellow */
-    }
-    .badge-resolved {
-        background-color: #28a745; /* Green */
-    }
-    .badge-closed {
-        background-color: #6c757d; /* Grey */
-    }
-    .badge-initial-response {
-        background-color: #008B8B; /* Dark Cyan */
-    }
-    .badge-waiting-customer {
-        background-color: #FFA500; /* Orange */
-    }
-    .badge-open {
+.ticket-title {
+    margin-bottom: 20px;
+    color: #343a40;
+    font-weight: bold;
+}
+
+.table-container {
+    width: 100%; /* Full width of the container */
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    width: 100%; /* Full table width */
+    table-layout: auto; /* Adjusts columns based on content */
+}
+
+.table th,
+.table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    word-wrap: break-word; /* Ensure long content wraps */
+}
+
+.table-responsive {
+    overflow-x: auto; /* Horizontal scroll for small screens */
+}
+
+.badge-status {
+    padding: 5px 10px;
+    border-radius: 12px;
+    color: white;
+}
+
+.badge-pending {
+    background-color: #ffc107; /* Yellow */
+}
+
+.badge-resolved {
+    background-color: #28a745; /* Green */
+}
+
+.badge-closed {
+    background-color: #6c757d; /* Grey */
+}
+
+.badge-initial-response {
+    background-color: #008B8B; /* Dark Cyan */
+}
+
+.badge-waiting-customer {
+    background-color: #FFA500; /* Orange */
+}
+
+.badge-open {
     background-color: #007bff; /* Blue */
-    }
-    .btn-action {
-        transition: background-color 0.3s, transform 0.3s;
-        margin: 0 5px;
-    }
-    .btn-action:hover {
-        transform: translateY(-2px);
-    }
+}
+
+/* Flexbox buttons inside the table */
+.btn-group {
+    display: flex; /* Align buttons properly */
+    justify-content: center;
+}
+
+.btn-action {
+    transition: background-color 0.3s, transform 0.3s;
+    margin: 0 5px;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+}
+
+.table-container {
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+}
+
+
 </style>
 
 <div class="container-fluid mt-5">
@@ -60,54 +98,57 @@
             {% include 'sidebar.html' %}
         </div>
 
-<div class="col-md-9">
-    <h2 class="ticket-title">Tickets Assigned to {{ user.username }}</h2>
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <h2 class="ticket-title">Tickets Assigned to {{ user.username }}</h2>
 
-    {% if tickets %}
-    <div class="table-container">
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Subject</th>
-                        <th>Status</th>
-                        <th>Group</th>
-                        <th>Assigned To</th> <!-- New column for Assigned To -->
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in tickets %}
-                    <tr>
-                        <td>{{ ticket.id }}</td>
-                        <td>{{ ticket.subject }}</td>
-                        <td>
-                            <span class="badge badge-status badge-{{ ticket.status|lower }}">{{ ticket.status }}</span>
-                        </td>
-                        <td>{{ ticket.group }}</td>
-                        <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td> <!-- Display Assigned To -->
-                        <td>{{ ticket.created_at|date:"F j, Y, g:i a" }}</td>
-                        <td>
-                            {% if request.user.is_superuser or request.user == ticket.assigned_to %}
-                            <a href="{% url 'assign_ticket' ticket.id %}" class="btn btn-warning btn-sm">Assign</a>
-                            <a href="{% url 'edit_ticket' ticket.id %}" class="btn btn-warning btn-action btn-sm">Edit</a>
-                            <a href="{% url 'delete_ticket' ticket.id %}" class="btn btn-danger btn-action btn-sm">Delete</a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% if tickets %}
+            <div class="table-container w-100">
+                <div class="table-responsive w-100">
+                    <table class="table table-striped table-bordered w-100">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Group</th>
+                                <th>Assigned To</th>
+                                <th>Created By</th>
+                                <th>Assigned By</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                            <tr>
+                                <td>{{ ticket.id }}</td>
+                                <td>{{ ticket.subject }}</td>
+                                <td><span class="badge badge-status badge-{{ ticket.status|lower }}">{{ ticket.status }}</span></td>
+                                <td>{{ ticket.group }}</td>
+                                <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td>
+                                <td>{{ ticket.created_by.username }}</td>
+                                <td>{{ ticket.assigned_by.username|default:"Not Assigned" }}</td>
+                                <td>{{ ticket.created_at|date:"F j, Y, g:i a" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'assign_ticket' ticket.id %}" class="btn btn-warning btn-sm">Assign</a>
+                                        <a href="{% url 'edit_ticket' ticket.id %}" class="btn btn-warning btn-action btn-sm">Edit</a>
+                                        <a href="{% url 'delete_ticket' ticket.id %}" class="btn btn-danger btn-action btn-sm">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+                <p>No tickets have been assigned to this user.</p>
+            {% endif %}
         </div>
     </div>
-    {% else %}
-        <p>No tickets have been assigned to this user.</p>
-    {% endif %}
 </div>
-
-
 
 
 
@@ -118,5 +159,6 @@
         dropdown.classList.toggle('active');
     });
 </script>
-
+    </div>
+</div>
 {% endblock %}
