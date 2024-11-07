@@ -239,6 +239,7 @@ def create_ticket(request):
             ticket = form.save(commit=False)
             ticket.created_by = request.user
             ticket.assigned_by = request.user
+            ticket.updated_at = timezone.now()
             ticket.save()
             return redirect('/')
     else:
