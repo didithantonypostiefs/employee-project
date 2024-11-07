@@ -149,7 +149,7 @@ def logout(request):
         auth.logout(request)
         messages.success(request, "You have successfully logged out.")
 
-    return redirect('login')
+    return redirect('login')  # Redirect to login page
 
 
 
@@ -453,4 +453,3 @@ def ticket_overview_view(request):
         'users_with_tickets': users_with_tickets,
     }
     return render(request, 'homepage.html', context)
-
