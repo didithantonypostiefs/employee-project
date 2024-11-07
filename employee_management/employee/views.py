@@ -9,20 +9,24 @@ from django.db.models import Max
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.contrib import auth, messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,HttpResponse
 from django.db import IntegrityError
 
 
 def get_logged_in_users():
+    # Get active sessions
     active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
 
+    # Extract user ids from the sessions
     user_ids = []
     for session in active_sessions:
         data = session.get_decoded()
         if '_auth_user_id' in data:
             user_ids.append(data.get('_auth_user_id'))
 
-    return User.objects.filter(id__in=user_ids)
+    # Fetch users whose profiles are marked as active
+    return User.objects.filter(id__in=user_ids, employeeprofile__is_active=True)
+
 
 
 # Create your views here.
@@ -131,7 +135,6 @@ def login(request):
 
     return render(request, 'index.html')
 
-
 def logout(request):
     if request.user.is_authenticated:
         # Attempt to retrieve the user profile, but only if it exists
@@ -147,6 +150,7 @@ def logout(request):
         messages.success(request, "You have successfully logged out.")
 
     return redirect('login')
+
 
 
 @login_required
@@ -449,6 +453,4 @@ def ticket_overview_view(request):
         'users_with_tickets': users_with_tickets,
     }
     return render(request, 'homepage.html', context)
-
-
 

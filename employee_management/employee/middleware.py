@@ -1,6 +1,9 @@
+from django.conf import settings
 from django.utils import timezone
 from django.core.cache import cache
 from .models import EmployeeProfile
+from django.shortcuts import redirect
+from datetime import timedelta,datetime
 
 class UpdateLastActivityMiddleware:
     def __init__(self, get_response):
@@ -41,3 +44,8 @@ class UpdateLastActivityMiddleware:
         # Proceed with the rest of the middleware stack
         response = self.get_response(request)
         return response
+
+
+# middleware.py
+
+

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns=[
 
@@ -24,5 +25,9 @@ urlpatterns=[
     path('toggle-break/', views.toggle_break, name='toggle_break'),
     path('assign_ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
     path('tickets/close/<int:ticket_id>/', views.close_ticket, name='close_ticket'),
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
 ]
