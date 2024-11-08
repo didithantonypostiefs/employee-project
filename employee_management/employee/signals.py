@@ -14,9 +14,6 @@ def set_inactive(sender, request, user, **kwargs):
         # Handle cases where the user does not have an EmployeeProfile
         pass
 
-
-
-
 logged_in_users = set()
 
 @receiver(user_logged_in)
@@ -26,7 +23,3 @@ def on_user_logged_in(sender, request, user, **kwargs):
 @receiver(user_logged_out)
 def on_user_logged_out(sender, request, user, **kwargs):
     logged_in_users.discard(user)
-
-
-
-

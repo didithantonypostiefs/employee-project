@@ -44,8 +44,3 @@ class UpdateLastActivityMiddleware:
         # Proceed with the rest of the middleware stack
         response = self.get_response(request)
         return response
-
-
-# middleware.py
-
-

@@ -436,7 +436,7 @@ h1 {
                                             +
                                         </button>
                                     </td>
-                                    <td>{{ user_tickets.latest_ticket.id }}</td>
+                                    <td>{{ user_tickets.latest_ticket.ticket_id }}</td>
                                     <td>{{ user_tickets.latest_ticket.subject }}</td>
                                     <td>{{ user_tickets.latest_ticket.status }}</td>
                                     <td>{{ user_tickets.latest_ticket.assigned_by.username }}</td>
@@ -476,7 +476,7 @@ h1 {
                                                                 +
                                                             </button>
                                                         </td>
-                                                        <td>{{ ticket.id }}</td>
+                                                        <td>{{ ticket.ticket_id }}</td>
                                                         <td>{{ ticket.subject }}</td>
                                                         <td>{{ ticket.status }}</td>
                                                         <td>{{ ticket.assigned_by.username|default:"N/A" }}</td>

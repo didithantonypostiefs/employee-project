@@ -6,8 +6,6 @@ from .forms import UserEditForm,EmployeeProfileForm,TicketForm
 from .models import EmployeeProfile,Ticket
 from django.http import HttpResponseForbidden, JsonResponse
 from django.db.models import Max
-from django.contrib.sessions.models import Session
-from django.utils import timezone
 from django.contrib import auth, messages
 from django.shortcuts import render, redirect,HttpResponse
 from django.db import IntegrityError
@@ -228,23 +226,39 @@ def employees_by_skill(request, skill):
     employees = EmployeeProfile.objects.filter(skill=skill, user__in=logged_in_users, is_on_break=False)
     return render(request, 'employee_by_level&skill.html', {'employees': employees, 'filter_type': skill})
 
-
-
+from django.utils import timezone
+from django.contrib.sessions.models import Session
 
 @login_required
 def create_ticket(request):
     if request.method == 'POST':
         form = TicketForm(request.POST)
         if form.is_valid():
+            # Don't save the form yet, create a ticket object without saving to the database
             ticket = form.save(commit=False)
+            # Assign the currently logged-in user as the creator of the ticket
             ticket.created_by = request.user
-            ticket.assigned_by = request.user
+            # Save the ticket to the database
             ticket.save()
-            return redirect('/')
+            return redirect('/')  # Redirect to the ticket list view or any other page
     else:
         form = TicketForm()
 
-    return render(request, 'create_ticket.html', {'form': form})
+    # Get active sessions and logged-in users
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    user_ids = [session.get_decoded().get('_auth_user_id') for session in active_sessions]
+    logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
+
+    # Use values to fetch necessary fields for JSON
+    employees = logged_in_users.values('id', 'username', 'employeeprofile__skill')
+
+    context = {
+        'form': form,
+        'employees': list(employees),  # Convert to a list to pass to the template
+    }
+
+    return render(request, 'create_ticket.html', context)
+
 
 
 @login_required

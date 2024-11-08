@@ -1,55 +1,68 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-<style>
-    .ticket-form-container {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .ticket-form-container h2 {
-        margin-bottom: 20px;
-        color: #343a40;
-    }
-    .btn-submit {
-        background-color: #007bff;
-        color: white;
-        transition: background-color 0.3s, transform 0.3s;
-    }
-    .btn-submit:hover {
-        background-color: #0056b3;
-        transform: translateY(-2px);
-    }
-</style>
-
 <div class="container-fluid mt-5">
     <div class="row">
-        <!-- Sidebar -->
         <div class="col-md-3">
             {% include 'sidebar.html' %}
         </div>
 
-        <!-- Ticket Form Content -->
         <div class="col-md-9">
             <div class="ticket-form-container">
                 <h2>Create a Ticket</h2>
-                <form method="POST">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary">Create Ticket</button>
-                </form>
+                <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Ticket</button>
+</form>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.querySelector('.custom-dropdown-toggle').addEventListener('click', function() {
-        let dropdown = this.closest('.custom-dropdown');
-        dropdown.classList.toggle('active');
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse the employees JSON passed from the view
+    var employees = {{ employees|safe }};  // No need for escapejs since we're using the `values` method
+
+    // Get the DOM elements for the group and assigned_to dropdowns
+    var groupSelect = document.getElementById('id_group');
+    var assignedToSelect = document.getElementById('id_assigned_to');
+
+    // Clear the assigned_to dropdown options
+    function clearAssignedToOptions() {
+        assignedToSelect.innerHTML = '<option value="">Select User</option>';
+    }
+
+    // Populate the assigned_to dropdown with users based on the selected group
+    function populateUsersByGroup(group) {
+        clearAssignedToOptions();
+
+        employees.forEach(function(employee) {
+            // Use the employee's skill (group) to filter
+            var skill = employee.employeeprofile__skill;
+            if (skill === group) {
+                var option = document.createElement('option');
+                option.value = employee.id;  // User ID (primary key)
+                option.textContent = employee.username;  // Username
+                assignedToSelect.appendChild(option);
+            }
+        });
+    }
+
+    // Listen for changes in the group dropdown
+    groupSelect.addEventListener('change', function() {
+        var selectedGroup = groupSelect.value;
+        if (selectedGroup) {
+            populateUsersByGroup(selectedGroup);
+        } else {
+            clearAssignedToOptions();  // Reset options if no group is selected
+        }
     });
+});
 </script>
+
+
+
 
 {% endblock %}

@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import EmployeeProfile
-from .models import Ticket
+from .models import Ticket,EmployeeProfile
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 
@@ -69,26 +68,25 @@ class TicketForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['subject', 'status', 'group', 'assigned_to', 'note']  # Include 'note' in the form
+        fields = ['ticket_id', 'subject', 'status', 'group', 'assigned_to', 'note']
         widgets = {
             'subject': forms.Textarea(attrs={'rows': 4, 'maxlength': 300}),
-            'note': forms.Textarea(attrs={'rows': 4}),  # Add widget to display note as a textarea
+            'note': forms.Textarea(attrs={'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):
+        group = kwargs.pop('group', None)  # Capture the group if passed in
         super().__init__(*args, **kwargs)
 
-        # Get all active sessions
+        # Filter logged-in users who are not on break
         active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
-
-        # Get user ids from active sessions
-        user_ids = []
-        for session in active_sessions:
-            data = session.get_decoded()
-            user_id = data.get('_auth_user_id', None)
-            if user_id:
-                user_ids.append(user_id)
-
-        # Get users who are logged in, active, and not on break
+        user_ids = [session.get_decoded().get('_auth_user_id') for session in active_sessions]
         logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
-        self.fields['assigned_to'].queryset = logged_in_users
+
+        # If a group is passed, filter the queryset by the group
+        if group:
+            self.fields['assigned_to'].queryset = logged_in_users.filter(employeeprofile__skill=group)
+        else:
+            self.fields['assigned_to'].queryset = logged_in_users
+
+
