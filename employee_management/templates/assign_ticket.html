@@ -1,27 +1,45 @@
 {% extends 'base.html' %}
-{% block content %}<br><br>
-<form method="POST">
-    {% csrf_token %}
+{% block content %}
+    <br><br>
+    <!-- Display form errors if any -->
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
 
-    {{ form.subject.errors }}
-    {{ form.subject }}<br><br>
+    <form method="POST">
+        {% csrf_token %}
 
-    {{ form.status.errors }}
-    {{ form.status }}<br><br>
+        <!-- Include the ticket ID as a hidden field -->
+        <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
 
-    {{ form.group.errors }}
-    {{ form.group }}<br><br>
 
-    {{ form.note.errors }}
-    {{ form.note }}<br><br>
+        <!-- Display other form fields -->
+        {{ form.subject.errors }}
+        {{ form.subject }}<br><br>
 
-    <label for="assigned_user">Reassign to:</label>
-    <select id="assigned_user" name="assigned_user" class="form-control">
-        {% for user in logged_in_users %}
-            <option value="{{ user.id }}" {% if user == ticket.assigned_to %}selected{% endif %}>{{ user.username }}</option>
-        {% endfor %}
-    </select>
+        {{ form.status.errors }}
+        {{ form.status }}<br><br>
 
-    <button type="submit" class="btn btn-primary mt-3">Reassign Ticket</button>
-</form>
+        {{ form.group.errors }}
+        {{ form.group }}<br><br>
+
+        {{ form.note.errors }}
+        {{ form.note }}<br><br>
+
+        <label for="assigned_user">Reassign to:</label>
+        <select id="assigned_user" name="assigned_user" class="form-control">
+            {% for user in logged_in_users %}
+                <option value="{{ user.id }}" {% if user == ticket.assigned_to %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary mt-3">Reassign Ticket</button>
+    </form>
 {% endblock %}

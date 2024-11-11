@@ -64,7 +64,7 @@ def home(request):
                 tickets_by_user[user_id] = {
                     'user': ticket.assigned_to,  # Reflect the user assigned the ticket
                     'latest_ticket': ticket,
-                    'assigned_by': ticket.created_by,
+                    'assigned_by': ticket.assigned_by,  # Assigned by, not just the creator
                     'older_tickets': []
                 }
             else:
@@ -76,6 +76,7 @@ def home(request):
         tickets_by_user = []
 
     return render(request, 'homepage.html', {'tickets_by_user': tickets_by_user})
+
 
 
 
@@ -234,13 +235,13 @@ def create_ticket(request):
     if request.method == 'POST':
         form = TicketForm(request.POST)
         if form.is_valid():
-            # Don't save the form yet, create a ticket object without saving to the database
             ticket = form.save(commit=False)
-            # Assign the currently logged-in user as the creator of the ticket
+            # Set the created_by and assigned_by fields to the user who created the ticket
             ticket.created_by = request.user
-            # Save the ticket to the database
+            ticket.assigned_by = request.user  # Initially assign the creator
+            ticket.assigned_at = timezone.now()  # Set assigned_at to the same as created_at for the first time
             ticket.save()
-            return redirect('/')  # Redirect to the ticket list view or any other page
+            return redirect('/')
     else:
         form = TicketForm()
 
@@ -249,17 +250,14 @@ def create_ticket(request):
     user_ids = [session.get_decoded().get('_auth_user_id') for session in active_sessions]
     logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
 
-    # Use values to fetch necessary fields for JSON
     employees = logged_in_users.values('id', 'username', 'employeeprofile__skill')
 
     context = {
         'form': form,
-        'employees': list(employees),  # Convert to a list to pass to the template
+        'employees': list(employees),
     }
 
     return render(request, 'create_ticket.html', context)
-
-
 
 @login_required
 def user_tickets(request, user_id):
@@ -272,16 +270,11 @@ def user_tickets(request, user_id):
         'user': user,
     })
 
-
 def view_tickets(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     # Get tickets assigned to the user
     tickets = Ticket.objects.filter(assigned_to=user)
     return render(request, 'view_tickets.html', {'user': user, 'tickets': tickets})
-
-
-
-
 
 @login_required
 def edit_ticket(request, ticket_id):
@@ -310,7 +303,6 @@ def delete_ticket(request, ticket_id):
     else:
         return HttpResponseForbidden("You are not allowed to delete this ticket.")
 
-
 @login_required
 def close_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
@@ -329,13 +321,10 @@ def close_ticket(request, ticket_id):
 
     return redirect('home')
 
-
-
-@login_required
 def assign_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
 
-    # Check if the logged-in user is the assigned user for this ticket
+    # Ensure that only the current assigned user can reassign the ticket
     if ticket.assigned_to != request.user:
         return render(request, 'homepage.html', {
             'error': "You are not authorized to assign this ticket.",
@@ -343,7 +332,7 @@ def assign_ticket(request, ticket_id):
         })
 
     if request.method == 'POST':
-        form = TicketForm(request.POST, instance=ticket)  # Bind form to the ticket instance
+        form = TicketForm(request.POST, instance=ticket)
         if form.is_valid():
             ticket = form.save(commit=False)
             new_assigned_user_id = request.POST.get('assigned_user')
@@ -352,21 +341,22 @@ def assign_ticket(request, ticket_id):
             # Update the ticket's assigned user
             ticket.assigned_to = new_assigned_user
             ticket.assigned_by = request.user
+            ticket.assigned_at = timezone.now()  # Update assigned_at on reassignment
             ticket.save()
-
             messages.success(request, "Ticket assigned successfully.")
-            return redirect('view_tickets', user_id=request.user.id)  # Redirect to the user's tickets page
+            return redirect('view_tickets', user_id=request.user.id)
 
     else:
-        form = TicketForm(instance=ticket)  # Pre-fill the form with the ticket data
-
+        form = TicketForm(instance=ticket)
     logged_in_users = User.objects.filter(is_active=True).exclude(id=request.user.id)
-
     return render(request, 'assign_ticket.html', {
         'ticket': ticket,
         'form': form,  # Pass the form to the template
         'logged_in_users': logged_in_users
     })
+
+
+
 
 from django.utils import timezone
 

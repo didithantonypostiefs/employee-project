@@ -34,30 +34,5 @@
         dropdown.classList.toggle('active');
     });
     </script>
-    <script>
-    let inactivityTimeout = 10 * 60 * 1000;  // 10 minutes (in milliseconds)
-    let timeout;
-
-    // Reset the timer when the user interacts with the page
-    function resetTimer() {
-        clearTimeout(timeout);
-        timeout = setTimeout(logoutUser, inactivityTimeout);  // Calls logoutUser after inactivity period
-    }
-
-    // Redirect the user to logout URL
-    function logoutUser() {
-        window.location.href = "{% url 'logout' %}";  // Redirect to the logout view
-    }
-
-    // Set event listeners to reset inactivity timer on user activity
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-
-    // Start the inactivity timer
-    resetTimer();
-</script>
-
-
 </body>
 </html>

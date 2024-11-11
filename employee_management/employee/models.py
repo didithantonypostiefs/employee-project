@@ -33,7 +33,7 @@ class EmployeeProfile(models.Model):
 
 
 class Ticket(models.Model):
-    ticket_id = models.CharField(max_length=10,default='AUTO')
+    ticket_id = models.CharField(max_length=10, unique=True)
     subject = models.CharField(max_length=300)
     status = models.CharField(max_length=50, choices=[
         ('open', 'Open'),
@@ -57,8 +57,9 @@ class Ticket(models.Model):
     assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='assigner_tickets')
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    assigned_at = models.DateTimeField(null=True, blank=True)
     note = models.TextField(blank=True)  # Add this field to hold the ticket note
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False

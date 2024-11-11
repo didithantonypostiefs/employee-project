@@ -137,9 +137,7 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
 
-# Session settings
-SESSION_COOKIE_AGE = 10 * 60  # 10 minutes
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # End session when the browser is closed
+
 
 
 # settings.py
