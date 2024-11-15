@@ -17,7 +17,52 @@
     .table td {
         vertical-align: middle;
     }
-
+    .btn-custom {
+        transition: background-color 0.3s, transform 0.3s;
+    }
+    .btn-custom:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #007bff;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
 </style>
 
 <div class="container-fluid mt-5">
@@ -61,6 +106,26 @@
                                 <th scope="row">Skill</th>
                                 <td>{{ employee_profile.skill }}</td>
                             </tr>
+                            {% if request.user == user %}
+                            <tr>
+                                <th scope="row">Break</th>
+                                <td>
+                                    <form action="{% url 'toggle_break_status' %}" method="post" id="breakToggleForm" class="ml-auto">
+                                        {% csrf_token %}
+                                        <label for="breakToggle" class="switch">
+                                            <input type="checkbox" id="breakToggle" {% if employee_profile.is_on_break %}checked{% endif %}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <span id="breakStatus">
+                                            {% if employee_profile.is_on_break %}
+                                            You are currently on break.
+                                            {% else %}
+                                            You are active.
+                                            {% endif %}
+                                        </span>
+                                    </form>
+                                </td>
+                            {% endif %}
                         </tbody>
                     </table>
 
