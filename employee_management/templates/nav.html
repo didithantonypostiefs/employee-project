@@ -10,6 +10,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'daily_activity' %}">Activity</a></li>
                 {% if request.user.is_authenticated %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'view_profile' request.user.id %}">Profile</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'create_ticket' %}">Create tickets</a></li>
@@ -107,3 +108,4 @@
         color: #ffffff; /* White text on hover */
     }
 </style>
+

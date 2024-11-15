@@ -114,6 +114,7 @@
         <!-- Actions for viewing profile, tickets, and promoting to admin -->
         <a href="{% url 'view_profile' employee.user.id %}" class="btn btn-secondary btn-sm">View Profile</a>
         <a href="{% url 'view_tickets' employee.user.id %}" class="btn btn-secondary btn-sm">View Tickets</a>
+        <a href="{% url 'user_activity' employee.user.id %}" class="btn btn-primary btn-sm">View Activity</a>
         {% if request.user.employeeprofile.is_admin and not employee.is_admin %}
             <a href="{% url 'promote_to_admin' employee.user.id %}" class="btn btn-secondary btn-sm">Promote to Admin</a>
         {% endif %}

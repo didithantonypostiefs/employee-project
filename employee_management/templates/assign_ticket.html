@@ -16,12 +16,8 @@
 
     <form method="POST">
         {% csrf_token %}
-
-        <!-- Include the ticket ID as a hidden field -->
         <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
 
-
-        <!-- Display other form fields -->
         {{ form.subject.errors }}
         {{ form.subject }}<br><br>
 

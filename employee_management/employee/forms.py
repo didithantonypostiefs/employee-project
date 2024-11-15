@@ -4,12 +4,12 @@ from .models import Ticket,EmployeeProfile
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 
-# Only Level 1 remains
+
 LEVEL_CHOICES = (
     ('1', 'Level 1'),
 )
 
-# Skills for Level 1 (or you can keep them as they are if not tied to levels)
+
 SKILL_CHOICES = (
     ('Linux', 'Linux'),
     ('Windows', 'Windows/Azure'),
@@ -46,7 +46,7 @@ class EmployeeProfileForm(forms.ModelForm):
         level = cleaned_data.get('level')
         skill = cleaned_data.get('skill')
 
-        # Skip validation for level and skill if the user is an admin
+
         if not is_admin:
             if not level:
                 self.add_error('level', 'This field is required.')
@@ -75,15 +75,12 @@ class TicketForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        group = kwargs.pop('group', None)  # Capture the group if passed in
+        group = kwargs.pop('group', None)
         super().__init__(*args, **kwargs)
-
-        # Filter logged-in users who are not on break
         active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
         user_ids = [session.get_decoded().get('_auth_user_id') for session in active_sessions]
         logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
 
-        # If a group is passed, filter the queryset by the group
         if group:
             self.fields['assigned_to'].queryset = logged_in_users.filter(employeeprofile__skill=group)
         else:

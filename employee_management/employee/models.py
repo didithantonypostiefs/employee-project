@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import timedelta
 
 LEVEL_CHOICES = (
     ('1', 'Level 1'),
@@ -22,14 +23,60 @@ class EmployeeProfile(models.Model):
     is_admin = models.BooleanField(default=False)
     is_on_break = models.BooleanField(default=False)
     promoted_to_admin = models.BooleanField(default=False)
-    total_time = models.DurationField(default=timezone.timedelta)
+    total_time = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     status = models.CharField(max_length=20, choices=[
         ('active', 'Active'),
         ('on_break', 'On Break'),
         ('offline', 'Offline')
     ], default='offline')
+
+
+class DailyActivity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now)
     login_time = models.DateTimeField(null=True, blank=True)
     logout_time = models.DateTimeField(null=True, blank=True)
+    break_duration = models.DurationField(default=timezone.timedelta)
+    total_work_time = models.DurationField(default=timezone.timedelta)
+
+
+    def calculate_total_work_time(self):
+        # Calculate total work time by summing all session times from SessionActivity for the user on this date
+        sessions = SessionActivity.objects.filter(user=self.user, date=self.date)
+        total_work_time = timezone.timedelta()
+        for session in sessions:
+            total_work_time += session.work_time
+        return total_work_time
+
+    def calculate_total_break_time(self):
+        # Sum up break durations from all sessions for this user on the same date
+        sessions = SessionActivity.objects.filter(user=self.user, date=self.date)
+        total_break_time = timezone.timedelta()
+        for session in sessions:
+            total_break_time += session.break_duration
+        return total_break_time
+
+    def __str__(self):
+        return f"{self.user.username} - {self.date}"
+
+
+class SessionActivity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now)
+    login_time = models.DateTimeField(null=True, blank=True)
+    logout_time = models.DateTimeField(null=True, blank=True)
+    break_start_time = models.DateTimeField(null=True, blank=True)
+    break_duration = models.DurationField(default=timezone.timedelta)
+    work_time = models.DurationField(default=timezone.timedelta)  # Work time for this session
+
+    def calculate_work_time(self):
+        if self.login_time and self.logout_time:
+            session_time = self.logout_time - self.login_time
+            return session_time - self.break_duration
+        return timezone.timedelta()  # Return 0 if the session is incomplete
+
+    def __str__(self):
+        return f"{self.user.username} - Session on {self.date}"
 
 
 class Ticket(models.Model):
@@ -58,11 +105,12 @@ class Ticket(models.Model):
                                     related_name='assigner_tickets')
     created_at = models.DateTimeField(auto_now_add=True)
     assigned_at = models.DateTimeField(null=True, blank=True)
-    note = models.TextField(blank=True)  # Add this field to hold the ticket note
+    note = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
+
 
     def __str__(self):
         return self.subject

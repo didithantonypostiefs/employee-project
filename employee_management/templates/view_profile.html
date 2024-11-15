@@ -17,52 +17,7 @@
     .table td {
         vertical-align: middle;
     }
-    .btn-custom {
-        transition: background-color 0.3s, transform 0.3s;
-    }
-    .btn-custom:hover {
-        background-color: #0056b3;
-        transform: translateY(-2px);
-    }
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 60px;
-        height: 34px;
-    }
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: .4s;
-        border-radius: 34px;
-    }
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 26px;
-        width: 26px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        transition: .4s;
-        border-radius: 50%;
-    }
-    input:checked + .slider {
-        background-color: #007bff;
-    }
-    input:checked + .slider:before {
-        transform: translateX(26px);
-    }
+
 </style>
 
 <div class="container-fluid mt-5">
@@ -106,27 +61,6 @@
                                 <th scope="row">Skill</th>
                                 <td>{{ employee_profile.skill }}</td>
                             </tr>
-                            {% if request.user == user %}
-                            <tr>
-                                <th scope="row">Break</th>
-                                <td>
-                                    <form action="{% url 'toggle_break' %}" method="post" id="breakToggleForm" class="ml-auto">
-                                        {% csrf_token %}
-                                        <label for="breakToggle" class="switch">
-                                            <input type="checkbox" id="breakToggle" {% if employee_profile.is_on_break %}checked{% endif %}>
-                                            <span class="slider round"></span>
-                                        </label>
-                                        <span id="breakStatus">
-                                            {% if employee_profile.is_on_break %}
-                                            You are currently on break.
-                                            {% else %}
-                                            You are active.
-                                            {% endif %}
-                                        </span>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endif %}
                         </tbody>
                     </table>
 
@@ -136,6 +70,7 @@
                         <a href="{% url 'edit_user' %}" class="btn btn-warning btn-custom">Edit Profile</a>
                         {% endif %}
                         <a href="{% url 'user_tickets' user.id %}" class="btn btn-secondary btn-custom">View Tickets</a>
+                        <a href="{% url 'user_activity' user.id %}" class="btn btn-primary btn-custom">View Activity</a>
                     </div>
                 </div>
             </div>
@@ -147,28 +82,37 @@
     document.addEventListener('DOMContentLoaded', function() {
         const breakToggle = document.getElementById('breakToggle');
         const breakStatus = document.getElementById('breakStatus');
-        const form = document.getElementById('breakToggleForm');
+        const csrfToken = "{{ csrf_token }}";  // Get CSRF token for request
 
+        // Check initial state and set the break status text accordingly
         if (breakToggle.checked) {
             breakStatus.textContent = 'You are currently on break.';
         } else {
             breakStatus.textContent = 'You are active.';
         }
 
+        // Listen for changes to the toggle and update the status via AJAX
         breakToggle.addEventListener('change', function() {
-            if (breakToggle.checked) {
-                breakStatus.textContent = 'You are currently on break.';
-            } else {
-                breakStatus.textContent = 'You are active.';
-            }
-            form.submit();
+            fetch("{% url 'toggle_break' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,  // Add CSRF token
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(() => {
+                // Fetch the updated status from the server and update the break status text
+                if (breakToggle.checked) {
+                    breakStatus.textContent = 'You are currently on break.';
+                } else {
+                    breakStatus.textContent = 'You are active.';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     });
-
-    document.querySelector('.custom-dropdown-toggle').addEventListener('click', function() {
-        let dropdown = this.closest('.custom-dropdown');
-        dropdown.classList.toggle('active');
-    });
 </script>
-
 {% endblock %}

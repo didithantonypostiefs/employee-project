@@ -23,11 +23,14 @@ urlpatterns=[
     path('ticket/edit/<int:ticket_id>/', views.edit_ticket, name='edit_ticket'),
     path('ticket/delete/<int:ticket_id>/', views.delete_ticket, name='delete_ticket'),
     path('toggle-break/', views.toggle_break, name='toggle_break'),
+    path('toggle-break-status/',views.toggle_break_status,name='toggle_break_status'),
     path('assign_ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
     path('tickets/close/<int:ticket_id>/', views.close_ticket, name='close_ticket'),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('activity/daily/', views.daily_activity_view, name='daily_activity'),
+    path('activity/user/<int:user_id>/', views.user_activity_view, name='user_activity'),
 
 ]
