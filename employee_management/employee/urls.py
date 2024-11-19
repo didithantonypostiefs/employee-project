@@ -32,5 +32,9 @@ urlpatterns=[
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('activity/daily/', views.daily_activity_view, name='daily_activity'),
     path('activity/user/<int:user_id>/', views.user_activity_view, name='user_activity'),
+    path('tickets/<int:ticket_id>/start/', views.start_work, name='start_work'),
+    path('tickets/<int:ticket_id>/stop/', views.stop_work, name='stop_work'),
+    path('update_time_spent/', views.update_time_spent, name='update_time_spent'),
+    path('update_ticket_activity/', views.update_ticket_activity, name='update_ticket_activity'),
 
 ]

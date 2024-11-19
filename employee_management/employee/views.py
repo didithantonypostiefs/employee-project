@@ -35,6 +35,7 @@ from .signals import logged_in_users
 @login_required
 def home(request):
     if request.user.is_authenticated:
+        employee_profile = EmployeeProfile.objects.get(user=request.user)
         logged_in_users_list = list(logged_in_users)
         status_filter = ['open', 'pending', 'waiting_on_customer', 'initial_response']
         all_tickets = Ticket.objects.filter(
@@ -57,7 +58,7 @@ def home(request):
         tickets_by_user = list(tickets_by_user.values())
     else:
         tickets_by_user = []
-    return render(request, 'homepage.html', {'tickets_by_user': tickets_by_user})
+    return render(request, 'homepage.html', {'tickets_by_user': tickets_by_user,'employee_profile': employee_profile})
 
 
 def register(request):
@@ -447,3 +448,84 @@ def user_activity_view(request, user_id):
         'activities': activities,
         'selected_date': selected_date
     })
+
+
+@login_required
+def start_work(request, ticket_id):
+    ticket = Ticket.objects.get(id=ticket_id, assigned_to=request.user)
+    print(f"Ticket found: {ticket.ticket_id}")
+    if not ticket.work_start_time:
+        ticket.start_work()
+    return JsonResponse({'status': 'started'})
+
+@login_required
+def stop_work(request, ticket_id):
+    ticket = Ticket.objects.get(id=ticket_id, assigned_to=request.user)
+    ticket.pause_work()  # Stop the timer and record the total time
+    return JsonResponse({'status': 'stopped', 'time_spent': ticket.time_spent.total_seconds()})
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from datetime import timedelta
+import json
+
+@csrf_exempt
+def update_time_spent(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            ticket_id = data.get('ticket_id')
+            time_spent_seconds = data.get('time_spent')
+
+            # Convert time_spent from seconds to timedelta
+            time_spent = timedelta(seconds=time_spent_seconds)
+
+            # Find the ticket
+            ticket = Ticket.objects.get(id=ticket_id)
+
+            # Add the time spent to the ticket's existing time_spent (which is also a timedelta)
+            if ticket.time_spent is None:  # Handle if time_spent was initially null
+                ticket.time_spent = time_spent
+            else:
+                ticket.time_spent += time_spent
+
+            # Save the ticket with the updated time_spent
+            ticket.save()
+
+            return JsonResponse({'status': 'success', 'time_spent': str(ticket.time_spent)})
+
+        except Ticket.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Ticket not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+
+@csrf_exempt
+def update_ticket_activity(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        ticket_id = data.get('ticket_id')
+        is_active = data.get('is_active')
+
+        try:
+            ticket = Ticket.objects.get(id=ticket_id)
+            ticket.is_active = is_active
+            ticket.save()
+            return JsonResponse({'status': 'success'})
+        except Ticket.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Ticket not found'})
+
+
+@login_required
+def toggle_timer(request):
+    user_profile = EmployeeProfile.objects.get(user=request.user)
+    if user_profile.is_active:
+        user_profile.is_active = False  # Stop timer
+    else:
+        user_profile.is_active = True  # Start timer
+    user_profile.save()
+    return redirect('home')

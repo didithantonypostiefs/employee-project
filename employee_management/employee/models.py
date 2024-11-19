@@ -106,10 +106,28 @@ class Ticket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     assigned_at = models.DateTimeField(null=True, blank=True)
     note = models.TextField(blank=True)
+    work_start_time = models.DateTimeField(null=True, blank=True)  # When the user clicks start
+    time_spent = models.DurationField(default=timezone.timedelta(0))
+    is_active = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
+
+    def start_work(self):
+        self.work_start_time = timezone.now()
+        self.save()
+
+    def pause_work(self):
+        if self.work_start_time:
+            time_diff = timezone.now() - self.work_start_time
+            self.time_spent += time_diff
+            self.work_start_time = None  # Pause the work
+            self.save()
+
+    def stop_work(self):
+        # This can be used when the user finishes the ticket
+        self.pause_work()  # Just pause work and leave the time_spent
 
 
     def __str__(self):

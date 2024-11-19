@@ -1,54 +1,154 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block content %}
+<!-- Main Content -->
+<div class="main-content container mt-5">
+    {% if user.is_authenticated %}
+        <div class="d-flex justify-content-between align-items-center mb-6">
+            <h1 class="text-white m-3">Tickets Overview</h1>
 
+            <!-- Break Toggle -->
+            <form action="{% url 'toggle_break_status' %}" method="post" id="breakToggleForm" class="d-flex align-items-center me-3">
+                {% csrf_token %}
+                <label for="breakToggle" class="switch">
+                    <input type="checkbox" id="breakToggle" {% if employee_profile.is_on_break %}checked{% endif %}>
+                    <span class="slider round"></span>
+                </label>
+                <span id="breakStatus" class="text-white mb-0">
+                    {% if employee_profile.is_on_break %}
+                    You are currently on break.
+                    {% else %}
+                    You are active.
+                    {% endif %}
+                </span>
+            </form>
+        </div>
 
+        {% for user_tickets in tickets_by_user %}
+            <div class="card mb-3 ticket-card">
+                <!-- Name Bar (click to expand older tickets) -->
+                <div class="card-header ticket-header">
+                    <h3 class="m-0" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-{{ user_tickets.user.id }}" aria-expanded="false" aria-controls="collapse-{{ user_tickets.user.id }}">
+                        {{ user_tickets.user.username }}'s Tickets
+                    </h3>
+                </div>
 
-<div class="main">
+                <!-- Latest Ticket is always shown -->
+                <div class="card-body ticket-body">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Ticket ID</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Assigned By</th>
+                                <th>Agent</th>
+                                <th>Assign Time</th>
+                                <th>Action</th>
+                                <th>Time Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if user_tickets.latest_ticket %}
+                                <!-- Latest Ticket Row -->
+                                <tr>
+                                    <td>
+                                        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ user_tickets.latest_ticket.id }}" aria-expanded="false" aria-controls="options-{{ user_tickets.latest_ticket.id }}">
+                                            +
+                                        </button>
+                                    </td>
+                                    <td>{{ user_tickets.latest_ticket.ticket_id }}</td>
+                                    <td>{{ user_tickets.latest_ticket.subject }}</td>
+                                    <td>{{ user_tickets.latest_ticket.status }}</td>
+                                    <td>{{ user_tickets.latest_ticket.assigned_by.username }}</td>
+                                    <td>{{ user_tickets.latest_ticket.assigned_to.username|default:"Unassigned" }}</td>
+                                    <td>
+                                        {% if user_tickets.latest_ticket.assigned_at %}
+                                            {{ user_tickets.latest_ticket.assigned_at|date:"Y-m-d H:i:s" }}
+                                        {% else %}
+                                            {{ user_tickets.latest_ticket.created_at|date:"Y-m-d H:i:s" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- Start/Pause Button -->
+                                        <button class="btn btn-success start-button" data-ticket-id="{{ user_tickets.latest_ticket.id }}">
+                                            {% if user_tickets.latest_ticket.work_start_time %}
+                                                Pause
+                                            {% else %}
+                                                Start
+                                            {% endif %}
+                                        </button>
+                                        <!-- Stop Button -->
+                                        <button class="btn btn-danger stop-button" data-ticket-id="{{ user_tickets.latest_ticket.id }}">Stop</button>
+                                    </td>
+                                    <td>
+                                        <span id="timer-{{ user_tickets.latest_ticket.id }}">
+                                            {% if user_tickets.latest_ticket.time_spent %}
+                                                {{ user_tickets.latest_ticket.time_spent|floatformat:2 }} seconds
+                                            {% else %}
+                                                0 seconds
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
 
-<article class="content">
-<!--<h1 class="page-title">HTML</h1>-->
-<!--<p class="lead">HTML (HyperText Markup Language) is the language of the web. It allows you to create web pages and place anything you like on them (well, almost anything!).</p>-->
-<!--<p>This section of Quackit provides a list of articles and tutorials to assist with your HTML coding.</p>-->
-</article>
+                                <!-- Options for Latest Ticket -->
+                                <tr class="collapse" id="options-{{ user_tickets.latest_ticket.id }}">
+                                    <td colspan="7">
+                                        <div class="options-list d-flex justify-content-start">
+                                            <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' user_tickets.latest_ticket.id %}">Assign</a>
+                                            <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ user_tickets.latest_ticket.id }}">Close Ticket</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
 
+                            {% if user_tickets.older_tickets %}
+                                <!-- Older Tickets (Expandable) -->
+                                <tr class="collapse collapse-wrapper" id="collapse-{{ user_tickets.user.id }}">
+                                    <td colspan="7">
+                                        <table class="table table-striped table-bordered">
+                                            <tbody>
+                                                {% for ticket in user_tickets.older_tickets %}
+                                                    <tr>
+                                                        <td>
+                                                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ ticket.id }}" aria-expanded="false" aria-controls="options-{{ ticket.id }}">
+                                                                +
+                                                            </button>
+                                                        </td>
+                                                        <td>{{ ticket.ticket_id }}</td>
+                                                        <td>{{ ticket.subject }}</td>
+                                                        <td>{{ ticket.status }}</td>
+                                                        <td>{{ ticket.assigned_by.username|default:"N/A" }}</td>
+                                                        <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td>
+                                                        <td>
+                                                            {% if ticket.assigned_at %}
+                                                                {{ ticket.assigned_at|date:"Y-m-d H:i:s" }}
+                                                            {% else %}
+                                                                {{ ticket.created_at|date:"Y-m-d H:i:s" }}
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
 
-
-
-
-<div class="sidebar">
-<nav>
-<ul>
-<li>
-<h3>Teams</h3>
-<ul>
-<li><a href="{% url 'employees_by_level' '1' %}">Level 1</a></li>
-<li><a href="{% url 'employees_by_skill' 'Linux' %}">Linux</a></li>
-<li><a href="{% url 'employees_by_skill' 'Windows' %}">Windows/Azure</a></li>
-<li><a href="{% url 'employees_by_skill' 'AWS' %}">Network/AWS</a></li>
-<li><a href="{% url 'employees_by_skill' 'LEVELONE' %}">Level One</a></li>
-<li><a href="{% url 'employees_by_skill' 'OCI' %}">OCI</a></li>
-
-</ul>
-</li>
-
-
-
-
-</ul>
-</nav>
+                                                    <!-- Options for Older Tickets -->
+                                                    <tr class="collapse" id="options-{{ ticket.id }}">
+                                                        <td colspan="7">
+                                                            <div class="options-list d-flex justify-content-start">
+                                                                <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' ticket.id %}">Assign</a>
+                                                                <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ ticket.id }}">Close Ticket</a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-white">You need to be logged in to view tickets.</p>
+    {% endif %}
 </div>
-
-
-
-
-</div>
-
-
-
-
-
-
-<script src="/common/js/spectrum/spectrum.js"></script>
-<script src="/common/js/lightbox2-master/dist/js/lightbox.min.js" charset="utf-8"></script><br><br>
-{% endblock %}

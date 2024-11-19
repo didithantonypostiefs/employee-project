@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
-
+{% load custom_filters %}
 {% block content %}
+
 <style>
 .ticket-title {
     margin-bottom: 20px;
@@ -117,6 +118,7 @@
                                 <th>Assigned By</th>
                                 <th>Created At</th>
                                 <th>Actions</th>
+                                <th>Time Spent</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -137,6 +139,7 @@
                                         <a href="{% url 'delete_ticket' ticket.id %}" class="btn btn-danger btn-action btn-sm">Delete</a>
                                     </div>
                                 </td>
+                                <td>{{ ticket.time_spent|format_timedelta }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -341,14 +341,54 @@ h1 {
         color: white !important;  /* !important to force white color */
     }
 
-
-
-
-
-
-
-
 </style>
+
+    <style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #007bff;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .ticket-active {
+        background-color: #f5c6cb; /* Example: Light red background */
+        }
+</style>
+
 
 
 </head>
@@ -407,27 +447,27 @@ h1 {
         {% endif %}
     </div>
 
-<!-- Main Content -->
+<!-- main content -->
 <div class="main-content container mt-5">
     {% if user.is_authenticated %}
         <div class="d-flex justify-content-between align-items-center mb-6">
             <h1 class="text-white m-3">Tickets Overview</h1>
 
-<!--            &lt;!&ndash; Break Toggle &ndash;&gt;-->
-<!--            <form action="{% url 'toggle_break_status' %}" method="post" id="breakToggleForm" class="d-flex align-items-center me-3">-->
-<!--                {% csrf_token %}-->
-<!--                <label for="breakToggle" class="switch">-->
-<!--                    <input type="checkbox" id="breakToggle" {% if employee_profile.is_on_break %}checked{% endif %}>-->
-<!--                    <span class="slider round"></span>-->
-<!--                </label>-->
-<!--                <span id="breakStatus" class="text-white mb-0">-->
-<!--                    {% if employee_profile.is_on_break %}-->
-<!--                    You are currently on break.-->
-<!--                    {% else %}-->
-<!--                    You are active.-->
-<!--                    {% endif %}-->
-<!--                </span>-->
-<!--            </form>-->
+            <!-- Break Toggle -->
+            <form action="{% url 'toggle_break_status' %}" method="post" id="breakToggleForm" class="d-flex align-items-center me-3">
+                {% csrf_token %}
+                <label for="breakToggle" class="switch">
+                    <input type="checkbox" id="breakToggle" {% if employee_profile.is_on_break %}checked{% endif %}>
+                    <span class="slider round"></span>
+                </label>
+                <span id="breakStatus" class="text-white mb-0">
+                    {% if employee_profile.is_on_break %}
+                    You are currently on break.
+                    {% else %}
+                    You are active.
+                    {% endif %}
+                </span>
+            </form>
         </div>
 
         {% for user_tickets in tickets_by_user %}
@@ -451,9 +491,12 @@ h1 {
                                 <th>Assigned By</th>
                                 <th>Agent</th>
                                 <th>Assign Time</th>
+                                <th>Action</th>
+                                <th>Time Spent</th>
                             </tr>
                         </thead>
                         <tbody>
+
                             {% if user_tickets.latest_ticket %}
                                 <!-- Latest Ticket Row -->
                                 <tr>
@@ -474,6 +517,26 @@ h1 {
                                             {{ user_tickets.latest_ticket.created_at|date:"Y-m-d H:i:s" }}
                                         {% endif %}
                                     </td>
+                                    <td>
+                                        <!-- Start Button with data-owner-id -->
+                                    <button class="btn btn-success start-button"
+                                            data-ticket-id="{{ user_tickets.latest_ticket.id }}"
+                                            data-owner-id="{{ user_tickets.latest_ticket.assigned_to.id }}">
+                                        Start
+                                    </button>
+
+
+                                    </td>
+                                    <td>
+                                        <span id="timer-{{ user_tickets.latest_ticket.id }}">
+                                            {% if user_tickets.latest_ticket.time_spent %}
+                                                {{ user_tickets.latest_ticket.time_spent|floatformat:2 }} seconds
+                                            {% else %}
+                                                0 seconds
+                                            {% endif %}
+                                        </span>
+
+                                    </td>
                                 </tr>
 
                                 <!-- Options for Latest Ticket -->
@@ -486,51 +549,78 @@ h1 {
                                     </td>
                                 </tr>
                             {% endif %}
-
-                            {% if user_tickets.older_tickets %}
-                                <!-- Older Tickets (Expandable) -->
-                                <tr class="collapse collapse-wrapper" id="collapse-{{ user_tickets.user.id }}">
-                                    <td colspan="7">
-                                        <table class="table table-striped table-bordered">
-                                            <tbody>
-                                                {% for ticket in user_tickets.older_tickets %}
-                                                    <tr>
-                                                        <td>
-                                                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ ticket.id }}" aria-expanded="false" aria-controls="options-{{ ticket.id }}">
-                                                                +
-                                                            </button>
-                                                        </td>
-                                                        <td>{{ ticket.ticket_id }}</td>
-                                                        <td>{{ ticket.subject }}</td>
-                                                        <td>{{ ticket.status }}</td>
-                                                        <td>{{ ticket.assigned_by.username|default:"N/A" }}</td>
-                                                        <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td>
-                                                        <td>
-                                                            {% if ticket.assigned_at %}
-                                                                {{ ticket.assigned_at|date:"Y-m-d H:i:s" }}
-                                                            {% else %}
-                                                                {{ ticket.created_at|date:"Y-m-d H:i:s" }}
-                                                            {% endif %}
-                                                        </td>
-                                                    </tr>
-
-                                                    <!-- Options for Older Tickets -->
-                                                    <tr class="collapse" id="options-{{ ticket.id }}">
-                                                        <td colspan="7">
-                                                            <div class="options-list d-flex justify-content-start">
-                                                                <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' ticket.id %}">Assign</a>
-                                                                <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ ticket.id }}">Close Ticket</a>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                </tr>
-                            {% endif %}
                         </tbody>
                     </table>
+
+                    <!-- Collapsible section for older tickets -->
+                    <div class="collapse" id="collapse-{{ user_tickets.user.id }}">
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Ticket ID</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Assigned By</th>
+                                    <th>Agent</th>
+                                    <th>Assign Time</th>
+                                    <th>Action</th>
+                                    <th>Time Spent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in user_tickets.older_tickets %}
+                                    <tr>
+                                        <td>
+                                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ ticket.id }}" aria-expanded="false" aria-controls="options-{{ ticket.id }}">
+                                                +
+                                            </button>
+                                        </td>
+                                        <td>{{ ticket.ticket_id }}</td>
+                                        <td>{{ ticket.subject }}</td>
+                                        <td>{{ ticket.status }}</td>
+                                        <td>{{ ticket.assigned_by.username }}</td>
+                                        <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td>
+                                        <td>
+                                            {% if ticket.assigned_at %}
+                                                {{ ticket.assigned_at|date:"Y-m-d H:i:s" }}
+                                            {% else %}
+                                                {{ ticket.created_at|date:"Y-m-d H:i:s" }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <!-- Start Button -->
+                                            <button class="btn btn-success start-button"
+                                                    data-ticket-id="{{ ticket.id }}"
+                                                    data-owner-id="{{ ticket.assigned_to.id }}">
+                                                Start
+                                            </button>
+
+                                        </td>
+                                        <td>
+                                            <span id="timer-{{ ticket.id }}">
+                                                {% if ticket.time_spent %}
+                                                    {{ ticket.time_spent|floatformat:2 }} seconds
+                                                {% else %}
+                                                    0 seconds
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Options for Older Ticket -->
+                                    <tr class="collapse" id="options-{{ ticket.id }}">
+                                        <td colspan="7">
+                                            <div class="options-list d-flex justify-content-start">
+                                                <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' ticket.id %}">Assign</a>
+                                                <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ ticket.id }}">Close Ticket</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         {% endfor %}
@@ -538,6 +628,7 @@ h1 {
         <p class="text-white">You need to be logged in to view tickets.</p>
     {% endif %}
 </div>
+
 
 
 
@@ -619,6 +710,162 @@ h1 {
     </script>
     {% endif %}
 
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const breakToggle = document.getElementById('breakToggle');
+        const breakStatus = document.getElementById('breakStatus');
+        const csrfToken = "{{ csrf_token }}";  // Get CSRF token for request
+
+        // Check initial state and set the break status text accordingly
+        if (breakToggle.checked) {
+            breakStatus.textContent = 'You are currently on break.';
+        } else {
+            breakStatus.textContent = 'You are active.';
+        }
+
+        // Listen for changes to the toggle and update the status via AJAX
+        breakToggle.addEventListener('change', function() {
+            fetch("{% url 'toggle_break' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,  // Add CSRF token
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(() => {
+                // Fetch the updated status from the server and update the break status text
+                if (breakToggle.checked) {
+                    breakStatus.textContent = 'You are currently on break.';
+                } else {
+                    breakStatus.textContent = 'You are active.';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+</script>
+
+<script>
+let timers = {}; // Store active timers
+
+// Helper function to format time in hh:mm:ss
+function formatTime(seconds) {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
+// Restore timer states from local storage on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTimers = JSON.parse(localStorage.getItem('timers')) || {};
+
+    for (const ticketId in savedTimers) {
+        const timerData = savedTimers[ticketId];
+        const timerElement = document.getElementById('timer-' + ticketId);
+        const startButton = document.querySelector(`.start-button[data-ticket-id="${ticketId}"]`);
+
+        if (timerElement && startButton) {
+            if (timerData.running) {
+                // If the timer was running, set button text to "Stop" and continue the timer
+                startButton.textContent = 'Stop';
+                const elapsedTime = (Date.now() - timerData.startTime) / 1000 + timerData.accumulatedTime;
+                timerElement.textContent = formatTime(elapsedTime);
+
+                // Continue the timer
+                timers[ticketId] = {
+                    startTime: timerData.startTime,
+                    accumulatedTime: timerData.accumulatedTime,
+                    interval: setInterval(() => {
+                        const updatedTime = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
+                        timerElement.textContent = formatTime(updatedTime);
+                    }, 1000)
+                };
+            } else {
+                // If timer was stopped, reset display to 00:00:00
+                timerElement.textContent = formatTime(0);
+            }
+        }
+    }
+});
+
+// Start/Stop Timer functionality
+document.querySelectorAll('.start-button').forEach(button => {
+    button.addEventListener('click', function () {
+        const ticketId = this.dataset.ticketId;
+        const ownerId = this.dataset.ownerId;
+        const currentUserId = "{{ user.id }}";  // Assuming you're passing current user's ID
+
+        if (ownerId !== currentUserId) {
+            alert('You are not authorized to start this timer.');
+            return;
+        }
+
+        const timerElement = document.getElementById('timer-' + ticketId);
+        const ticketRow = timerElement.closest('tr');  // Get the ticket row element
+
+        if (this.textContent.trim() === 'Start') {
+            this.textContent = 'Stop'; // Change button text to "Stop"
+
+
+            // Reset timer to 00:00:00 on start
+            timerElement.textContent = formatTime(0);
+
+            const startTime = Date.now();
+            let accumulatedTime = 0;
+
+            // Start the timer
+            timers[ticketId] = {
+                startTime: startTime,
+                accumulatedTime: accumulatedTime,
+                interval: setInterval(() => {
+                    const elapsedTime = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
+                    timerElement.textContent = formatTime(elapsedTime);
+                }, 1000)
+            };
+
+            // Save timer state to local storage
+            const savedTimers = JSON.parse(localStorage.getItem('timers')) || {};
+            savedTimers[ticketId] = { startTime: startTime, accumulatedTime: accumulatedTime, running: true };
+            localStorage.setItem('timers', JSON.stringify(savedTimers));
+
+        } else {
+            this.textContent = 'Start';  // Change button text to "Start"
+            clearInterval(timers[ticketId].interval);
+
+            const timeSpent = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
+            timerElement.textContent = formatTime(0);  // Reset the timer to 00:00:00 after stopping
+
+            // Send the accumulated time to the server
+            fetch('/update_time_spent/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ticket_id: ticketId,
+                    time_spent: timeSpent
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': "{{ csrf_token }}"
+                }
+            }).then(response => response.json()).then(data => {
+                if (data.status === 'success') {
+                    timerElement.textContent = formatTime(0);  // Ensure timer is reset to 00:00:00 after saving
+                }
+            });
+
+
+
+            // Save stopped timer state to local storage (accumulated time is saved)
+            const savedTimers = JSON.parse(localStorage.getItem('timers')) || {};
+            savedTimers[ticketId] = { accumulatedTime: timeSpent, running: false };
+            localStorage.setItem('timers', JSON.stringify(savedTimers));
+        }
+    });
+});
+</script>
 
 
 </body>
