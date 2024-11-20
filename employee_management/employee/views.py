@@ -268,7 +268,7 @@ def close_ticket(request, ticket_id):
 
 def assign_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    if ticket.assigned_to != request.user:
+    if ticket.assigned_to != request.user and not request.user.employeeprofile.is_admin:
         return render(request, 'homepage.html', {
             'error': "You are not authorized to assign this ticket.",
             'ticket_id': ticket_id,

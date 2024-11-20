@@ -387,7 +387,18 @@ h1 {
     .ticket-active {
         background-color: #e2d3f9; /* Light purple background */
     }
+
+    .activity-badge {
+        padding: 2px 6px;
+        border-radius: 10px;
+        color: white;
+    }
+
+    .badge-warning {
+        background-color: #ffc107; /* Bootstrap warning color (yellow) */
+    }
 </style>
+
 
 
 
@@ -480,6 +491,9 @@ h1 {
                 <div class="card-header ticket-header">
                     <h3 class="m-0" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-{{ user_tickets.user.id }}" aria-expanded="false" aria-controls="collapse-{{ user_tickets.user.id }}">
                         {{ user_tickets.user.username }}'s Tickets
+                        {% if user_tickets.user.employeeprofile.is_on_break %}
+                            <span class="badge badge-warning activity-badge">On Break</span>
+                        {% endif %}
                     </h3>
                 </div>
 
