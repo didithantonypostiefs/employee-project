@@ -509,15 +509,23 @@ def update_ticket_activity(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         ticket_id = data.get('ticket_id')
-        is_active = data.get('is_active')
+        action = data.get('action')  # 'start' or 'stop'
 
         try:
             ticket = Ticket.objects.get(id=ticket_id)
-            ticket.is_active = is_active
+
+            if action == 'start':
+                ticket.is_active = True
+                ticket.work_start_time = timezone.now()
+            elif action == 'stop':
+                ticket.is_active = False
+                ticket.pause_work()  # Pause the work and calculate the time spent
+
             ticket.save()
             return JsonResponse({'status': 'success'})
         except Ticket.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Ticket not found'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 
 @login_required
