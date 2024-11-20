@@ -333,24 +333,25 @@ def toggle_break_status(request):
     # Update the session activity for the current session
     today = timezone.now().date()
     try:
-        current_session = SessionActivity.objects.filter(user=request.user, date=today, logout_time=None).latest(
-            'login_time')
+        current_session = SessionActivity.objects.filter(user=request.user, date=today, logout_time=None).latest('login_time')
 
         if user_profile.is_on_break:
-            # If the user is now on break, we record the time when the break starts
-            current_session.break_start_time = timezone.now()  # Record the time when break starts
+            # If the user is now on break, record the time when the break starts
+            current_session.break_start_time = timezone.now()
             current_session.save()
         else:
-            # If the user is no longer on break, calculate the break duration
-            break_duration = timezone.now() - current_session.break_start_time  # Time since break started
-            current_session.break_duration += break_duration  # Add this break time to the session's break duration
-            current_session.work_time = current_session.calculate_work_time()  # Recalculate work time based on the updated break duration
+            # Ensure break_start_time is not None before calculating the duration
+            if current_session.break_start_time:
+                break_duration = timezone.now() - current_session.break_start_time
+                current_session.break_duration += break_duration
+                current_session.work_time = current_session.calculate_work_time()
             current_session.save()
 
     except SessionActivity.DoesNotExist:
         pass  # No active session found, nothing to update
 
-    return redirect('user_activity_view', user_id=request.user.id)
+    return redirect('home')  # Redirect to a valid view like 'home'
+
 
 
 @login_required
