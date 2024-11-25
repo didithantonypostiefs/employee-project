@@ -119,8 +119,10 @@ class Ticket(models.Model):
         self.save()
 
     def pause_work(self):
+        """Pause the work timer and accumulate the time spent."""
         if self.work_start_time:
             time_diff = timezone.now() - self.work_start_time
+            # Update time spent, ensuring to exclude any break time that was added to the session
             self.time_spent += time_diff
             self.work_start_time = None  # Pause the work
             self.save()

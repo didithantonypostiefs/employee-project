@@ -324,6 +324,7 @@ def add_employee(request):
     return render(request, 'add_employee.html', {'form': form})
 
 
+
 @login_required
 def toggle_break_status(request):
     user_profile = request.user.employeeprofile
@@ -336,10 +337,23 @@ def toggle_break_status(request):
         current_session = SessionActivity.objects.filter(user=request.user, date=today, logout_time=None).latest('login_time')
 
         if user_profile.is_on_break:
-            # If the user is now on break, record the time when the break starts
+            # If the user is now on break, stop all active tickets and record their time
+            active_tickets = Ticket.objects.filter(assigned_to=request.user, is_active=True)
+            for ticket in active_tickets:
+                ticket.pause_work()  # Pause the timer and calculate time spent
+                ticket.save()
+
+            # Record the break start time
             current_session.break_start_time = timezone.now()
             current_session.save()
         else:
+            # If the user is resuming work, restart active ticket timers
+            active_tickets = Ticket.objects.filter(assigned_to=request.user, is_active=True)
+            for ticket in active_tickets:
+                if ticket.work_start_time is None:  # If the timer is not already running
+                    ticket.work_start_time = timezone.now()  # Start counting from now
+                    ticket.save()
+
             # Ensure break_start_time is not None before calculating the duration
             if current_session.break_start_time:
                 break_duration = timezone.now() - current_session.break_start_time
@@ -350,7 +364,7 @@ def toggle_break_status(request):
     except SessionActivity.DoesNotExist:
         pass  # No active session found, nothing to update
 
-    return redirect('home')  # Redirect to a valid view like 'home'
+    return redirect('home')
 
 
 

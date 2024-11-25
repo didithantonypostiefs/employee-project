@@ -744,22 +744,65 @@ h1 {
     </script>
     {% endif %}
 
-    <script>
+<script>
 document.addEventListener('DOMContentLoaded', function() {
     const breakToggle = document.getElementById('breakToggle');
-    const breakStatus = document.getElementById('breakStatus');
     const csrfToken = "{{ csrf_token }}";  // Get CSRF token for request
 
-    // Set the break status text when the page loads
-    if (breakToggle.checked) {
-        breakStatus.textContent = 'You are currently on break.';
-    } else {
-        breakStatus.textContent = 'You are active.';
+    // Timer management
+    let timers = {}; // Store active timers
+
+    function stopAllTimers() {
+        // Stop all running timers and update the backend with the accumulated time
+        Object.keys(timers).forEach(ticketId => {
+            clearInterval(timers[ticketId].interval); // Stop the timer interval
+            const timeSpent = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
+
+            // Update the time on the server
+            fetch('/update_time_spent/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ticket_id: ticketId,
+                    time_spent: timeSpent
+                })
+            }).then(response => response.json()).then(data => {
+                if (data.status !== 'success') {
+                    console.error('Failed to update time spent:', data.message);
+                }
+            });
+
+            timers[ticketId] = { accumulatedTime: timeSpent, running: false }; // Update local storage or state
+        });
+
+        // Clear all timer intervals
+        timers = {};
+    }
+
+    function startAllTimers() {
+        // Resumes all active tickets' timers on the backend
+        Object.keys(timers).forEach(ticketId => {
+            timers[ticketId].startTime = Date.now();
+            timers[ticketId].interval = setInterval(() => {
+                const updatedTime = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
+                document.getElementById('timer-' + ticketId).textContent = formatTime(updatedTime);
+            }, 1000);
+        });
     }
 
     // Listen for changes to the break toggle and update the status via AJAX
     breakToggle.addEventListener('change', function() {
-        fetch("{% url 'toggle_break' %}", {
+        if (this.checked) {
+            stopAllTimers();  // If break is toggled on, stop all active timers
+        } else {
+            startAllTimers();  // If break is toggled off, resume the timers
+        }
+
+        // Toggle the break status via an AJAX request
+        fetch("{% url 'toggle_break_status' %}", {
             method: 'POST',
             headers: {
                 'X-CSRFToken': csrfToken,
@@ -768,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({}),
         })
         .then(() => {
-            // Reload the page after toggling the break to update ticket visibility
+            // Optionally reload the page after toggling the break to update ticket visibility
             window.location.reload();
         })
         .catch(error => {
@@ -907,8 +950,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
 </script>
-
 </body>
 </html>
