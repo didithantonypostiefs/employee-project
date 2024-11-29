@@ -109,10 +109,7 @@ class Ticket(models.Model):
     work_start_time = models.DateTimeField(null=True, blank=True)  # When the user clicks start
     time_spent = models.DurationField(default=timezone.timedelta(0))
     is_active = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = False
 
     def start_work(self):
         self.work_start_time = timezone.now()
