@@ -223,9 +223,7 @@
     transition: transform 0.2s; /* Optional: Smooth transition effect */
 }
 
-.card:hover {
-    transform: scale(1.02); /* Optional: Slightly scale up on hover */
-}
+
 
 
 
@@ -397,6 +395,13 @@ h1 {
     .badge-warning {
         background-color: #ffc107; /* Bootstrap warning color (yellow) */
     }
+
+
+    .dropdown-menu {
+    position: absolute; /* Make dropdown absolute to allow better control */
+    z-index: 1050; /* Ensure it's above other content */
+    }
+
 </style>
 
 
@@ -457,6 +462,7 @@ h1 {
         {% endif %}
     </div>
 
+
 <!-- main content -->
 <div class="main-content container mt-5">
     {% if user.is_authenticated %}
@@ -505,8 +511,6 @@ h1 {
                                 <th>Ticket ID</th>
                                 <th>Subject</th>
                                 <th>Status</th>
-                                <th>Assigned By</th>
-                                <th>Agent</th>
                                 <th>Assign Time</th>
                                 <th>Action</th>
                                 <th>Time Spent</th>
@@ -525,9 +529,7 @@ h1 {
     </td>
     <td>{{ user_tickets.latest_ticket.ticket_id }}</td>
     <td>{{ user_tickets.latest_ticket.subject }}</td>
-    <td>{{ user_tickets.latest_ticket.status }}</td>
-    <td>{{ user_tickets.latest_ticket.assigned_by.username }}</td>
-    <td>{{ user_tickets.latest_ticket.assigned_to.username|default:"Unassigned" }}</td>
+    <td id="ticket-status-{{ user_tickets.latest_ticket.id }}">{{ user_tickets.latest_ticket.status }}</td>
     <td>
         {% if user_tickets.latest_ticket.assigned_at %}
             {{ user_tickets.latest_ticket.assigned_at|date:"Y-m-d H:i:s" }}
@@ -564,7 +566,28 @@ h1 {
                                     <td colspan="7">
                                         <div class="options-list d-flex justify-content-start">
                                             <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' user_tickets.latest_ticket.id %}">Assign</a>
-                                            <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ user_tickets.latest_ticket.id }}">Close Ticket</a>
+
+                                            <div class="dropdown">
+        <button class="btn btn-outline-info dropdown-toggle" type="button" id="statusDropdown-{{ user_tickets.latest_ticket.id }}"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            Status
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="statusDropdown-{{ user_tickets.latest_ticket.id }}">
+            <!-- Dynamically generate status options excluding the current one -->
+            {% for status in ticket_statuses %}
+                {% if status.0 != user_tickets.latest_ticket.status %}
+                    <li>
+                        <a class="dropdown-item change-status"
+                           href="#"
+                           data-ticket-id="{{ user_tickets.latest_ticket.id }}"
+                           data-new-status="{{ status.0 }}">
+                           {{ status.1 }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -581,8 +604,6 @@ h1 {
                                     <th>Ticket ID</th>
                                     <th>Subject</th>
                                     <th>Status</th>
-                                    <th>Assigned By</th>
-                                    <th>Agent</th>
                                     <th>Assign Time</th>
                                     <th>Action</th>
                                     <th>Time Spent</th>
@@ -598,9 +619,7 @@ h1 {
             </td>
             <td>{{ ticket.ticket_id }}</td>
             <td>{{ ticket.subject }}</td>
-            <td>{{ ticket.status }}</td>
-            <td>{{ ticket.assigned_by.username }}</td>
-            <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td>
+            <td id="ticket-status-{{ ticket.id }}">{{ ticket.status }}</td>
             <td>
                 {% if ticket.assigned_at %}
                     {{ ticket.assigned_at|date:"Y-m-d H:i:s" }}
@@ -636,7 +655,27 @@ h1 {
             <td colspan="7">
                 <div class="options-list d-flex justify-content-start">
                     <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' ticket.id %}">Assign</a>
-                    <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ ticket.id }}">Close Ticket</a>
+                    <!-- Status Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline-info dropdown-toggle" type="button" id="statusDropdown-{{ ticket.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                Status
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="statusDropdown-{{ ticket.id }}">
+                                <!-- Dynamically generate status options excluding the current one -->
+                                {% for status in ticket_statuses %}
+                                    {% if status.0 != ticket.status %}
+                                        <li>
+                                            <a class="dropdown-item change-status"
+                                               href="#"
+                                               data-ticket-id="{{ ticket.id }}"
+                                               data-new-status="{{ status.0 }}">
+                                               {{ status.1 }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
                 </div>
             </td>
         </tr>
@@ -658,9 +697,6 @@ h1 {
         <p class="text-white">You need to be logged in to view tickets.</p>
     {% endif %}
 </div>
-
-
-
 
 
 
@@ -825,6 +861,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 let timers = {}; // Store active timers
+let activeTicketId = null; // Track the currently active ticket's ID
 
 // Helper function to format time in hh:mm:ss
 function formatTime(seconds) {
@@ -836,18 +873,9 @@ function formatTime(seconds) {
 
 // Restore timer states from local storage on page load
 document.addEventListener('DOMContentLoaded', () => {
-    let timers = {};  // Store active timers
     const savedTimers = JSON.parse(localStorage.getItem('timers')) || {};
 
-    // Helper function to format time in hh:mm:ss
-    function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-        return `${h}:${m}:${s}`;
-    }
-
-    // Restore timer states from local storage on page load
+    // Restore the state of each timer
     for (const ticketId in savedTimers) {
         const timerData = savedTimers[ticketId];
         const timerElement = document.getElementById('timer-' + ticketId);
@@ -855,12 +883,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (timerElement && startButton) {
             if (timerData.running) {
-                // If the timer was running, set button text to "Stop" and continue the timer
+                // Set button text to "Stop" if the timer was running
                 startButton.textContent = 'Stop';
+
+                // Restore the active ticket ID (only one timer should be active at a time)
+                activeTicketId = ticketId;
+
+                // Calculate the elapsed time since the timer started
                 const elapsedTime = (Date.now() - timerData.startTime) / 1000 + timerData.accumulatedTime;
                 timerElement.textContent = formatTime(elapsedTime);
 
-                // Continue the timer
+                // Resume the timer
                 timers[ticketId] = {
                     startTime: timerData.startTime,
                     accumulatedTime: timerData.accumulatedTime,
@@ -870,7 +903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 1000)
                 };
             } else {
-                // If timer was stopped, reset display to 00:00:00
+                // If the timer was stopped, reset display to 00:00:00
                 timerElement.textContent = formatTime(0);
             }
         }
@@ -881,7 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', function () {
             const ticketId = this.dataset.ticketId;
             const ownerId = this.dataset.ownerId;
-            const currentUserId = "{{ user.id }}";  // Assuming you're passing current user's ID
+            const currentUserId = "{{ user.id }}";  // Assuming you're passing the current user's ID
 
             if (ownerId !== currentUserId) {
                 alert('You are not authorized to start/stop this timer.');
@@ -891,6 +924,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const timerElement = document.getElementById('timer-' + ticketId);
             const ticketRow = timerElement.closest('tr');  // Get the ticket row element
             const action = this.textContent.trim() === 'Start' ? 'start' : 'stop';
+
+            if (action === 'start' && activeTicketId !== null) {
+                alert('You are already working on a ticket. Stop that timer to start a new one.');
+                return;
+            }
 
             // Toggle button text
             this.textContent = action === 'start' ? 'Stop' : 'Start';
@@ -935,6 +973,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 savedTimers[ticketId] = { startTime: startTime, accumulatedTime: accumulatedTime, running: true };
                 localStorage.setItem('timers', JSON.stringify(savedTimers));
 
+                // Set the currently active ticket ID
+                activeTicketId = ticketId;
+
             } else {
                 clearInterval(timers[ticketId].interval);
                 const timeSpent = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
@@ -942,14 +983,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Reset the timer to 00:00:00 after stopping
                 timerElement.textContent = formatTime(0);
 
-                // Save stopped timer state to local storage (accumulated time is saved)
-                savedTimers[ticketId] = { accumulatedTime: timeSpent, running: false };
+                // Save stopped timer state to local storage with accumulatedTime set to 0
+                savedTimers[ticketId] = { accumulatedTime: 0, running: false };
                 localStorage.setItem('timers', JSON.stringify(savedTimers));
+
+                // Clear the active ticket ID
+                activeTicketId = null;
             }
         });
     });
 });
 
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Listen for clicks on all status change links
+    document.querySelectorAll('.change-status').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const ticketId = this.dataset.ticketId; // Get ticket ID from data attribute
+            const newStatus = this.dataset.newStatus; // Get new status from data attribute
+
+            // Perform AJAX request to update the status
+            fetch('/update_ticket_status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF token for security
+                },
+                body: JSON.stringify({
+                    ticket_id: ticketId,
+                    new_status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the status in the corresponding table row
+                    const statusCell = document.querySelector(`#ticket-status-${ticketId}`);
+                    if (statusCell) {
+                        statusCell.textContent = data.new_status_label;  // Update the status text
+                    }
+
+                    // Show a success message, then force a full page reload
+                    alert('Status updated successfully!');
+                    window.location.reload();
+                } else {
+                    // Show an alert if the user is not authorized or any other error occurred
+                    alert(data.message || 'Failed to update status.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the status.');
+            });
+        });
+    });
+});
 </script>
 </body>
 </html>

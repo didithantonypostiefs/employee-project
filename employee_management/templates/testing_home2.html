@@ -223,7 +223,9 @@
     transition: transform 0.2s; /* Optional: Smooth transition effect */
 }
 
-
+.card:hover {
+    transform: scale(1.02); /* Optional: Slightly scale up on hover */
+}
 
 
 
@@ -395,13 +397,6 @@ h1 {
     .badge-warning {
         background-color: #ffc107; /* Bootstrap warning color (yellow) */
     }
-
-
-    .dropdown-menu {
-    position: absolute; /* Make dropdown absolute to allow better control */
-    z-index: 1050; /* Ensure it's above other content */
-    }
-
 </style>
 
 
@@ -464,6 +459,7 @@ h1 {
 
 
 <!-- main content -->
+<!-- main content -->
 <div class="main-content container mt-5">
     {% if user.is_authenticated %}
         <div class="d-flex justify-content-between align-items-center mb-6">
@@ -486,20 +482,26 @@ h1 {
             </form>
         </div>
 
-
     {% if not employee_profile.is_on_break %}
         <!-- Show tickets only if not on break -->
         <div id="ticket-container">
         {% for user_tickets in tickets_by_user %}
             <div class="card mb-3 ticket-card">
                 <!-- Name Bar (click to expand older tickets) -->
-                <div class="card-header ticket-header">
+                <div class="card-header ticket-header d-flex justify-content-between">
                     <h3 class="m-0" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-{{ user_tickets.user.id }}" aria-expanded="false" aria-controls="collapse-{{ user_tickets.user.id }}">
                         {{ user_tickets.user.username }}'s Tickets
                         {% if user_tickets.user.employeeprofile.is_on_break %}
                             <span class="badge badge-warning activity-badge">On Break</span>
                         {% endif %}
                     </h3>
+
+                    <!-- Display Active Ticket ID and Subject in the Name Bar when Timer is Active -->
+                    <div id="active-ticket-info-{{ user_tickets.user.id }}" class="active-ticket-info text-warning">
+                        {% if user_tickets.latest_ticket.is_active %}
+                            Current Working Job:  Ticket ID #{{ user_tickets.latest_ticket.ticket_id }} - "{{ user_tickets.latest_ticket.subject }}"
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- Latest Ticket is always shown -->
@@ -511,83 +513,61 @@ h1 {
                                 <th>Ticket ID</th>
                                 <th>Subject</th>
                                 <th>Status</th>
+                                <th>Assigned By</th>
+                                <th>Agent</th>
                                 <th>Assign Time</th>
                                 <th>Action</th>
                                 <th>Time Spent</th>
                             </tr>
                         </thead>
                         <tbody>
-
                             {% if user_tickets.latest_ticket %}
-                                <!-- Latest Ticket Row -->
-                                <!-- Latest Ticket Row -->
-<tr class="{% if user_tickets.latest_ticket.is_active %}ticket-active{% endif %}">
-    <td>
-        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ user_tickets.latest_ticket.id }}" aria-expanded="false" aria-controls="options-{{ user_tickets.latest_ticket.id }}">
-            +
-        </button>
-    </td>
-    <td>{{ user_tickets.latest_ticket.ticket_id }}</td>
-    <td>{{ user_tickets.latest_ticket.subject }}</td>
-    <td id="ticket-status-{{ user_tickets.latest_ticket.id }}">{{ user_tickets.latest_ticket.status }}</td>
-    <td>
-        {% if user_tickets.latest_ticket.assigned_at %}
-            {{ user_tickets.latest_ticket.assigned_at|date:"Y-m-d H:i:s" }}
-        {% else %}
-            {{ user_tickets.latest_ticket.created_at|date:"Y-m-d H:i:s" }}
-        {% endif %}
-    </td>
-    <td>
-        <button class="btn btn-success start-button"
-                data-ticket-id="{{ user_tickets.latest_ticket.id }}"
-                data-owner-id="{{ user_tickets.latest_ticket.assigned_to.id }}">
-            {% if user_tickets.latest_ticket.is_active %}
-                Stop
-            {% else %}
-                Start
-            {% endif %}
-        </button>
-    </td>
-    <td>
-        <span id="timer-{{ user_tickets.latest_ticket.id }}">
-            {% if user_tickets.latest_ticket.time_spent %}
-                {{ user_tickets.latest_ticket.time_spent|floatformat:2 }} seconds
-            {% else %}
-                0 seconds
-            {% endif %}
-        </span>
-    </td>
-</tr>
-
-
+                                <tr class="{% if user_tickets.latest_ticket.is_active %}ticket-active{% endif %}">
+                                    <td>
+                                        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ user_tickets.latest_ticket.id }}" aria-expanded="false" aria-controls="options-{{ user_tickets.latest_ticket.id }}">
+                                            +
+                                        </button>
+                                    </td>
+                                    <td>{{ user_tickets.latest_ticket.ticket_id }}</td>
+                                    <td>{{ user_tickets.latest_ticket.subject }}</td>
+                                    <td>{{ user_tickets.latest_ticket.status }}</td>
+                                    <td>{{ user_tickets.latest_ticket.assigned_by.username }}</td>
+                                    <td>{{ user_tickets.latest_ticket.assigned_to.username|default:"Unassigned" }}</td>
+                                    <td>
+                                        {% if user_tickets.latest_ticket.assigned_at %}
+                                            {{ user_tickets.latest_ticket.assigned_at|date:"Y-m-d H:i:s" }}
+                                        {% else %}
+                                            {{ user_tickets.latest_ticket.created_at|date:"Y-m-d H:i:s" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-success start-button"
+                                                data-ticket-id="{{ user_tickets.latest_ticket.id }}"
+                                                data-owner-id="{{ user_tickets.latest_ticket.assigned_to.id }}">
+                                            {% if user_tickets.latest_ticket.is_active %}
+                                                Stop
+                                            {% else %}
+                                                Start
+                                            {% endif %}
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <span id="timer-{{ user_tickets.latest_ticket.id }}">
+                                            {% if user_tickets.latest_ticket.time_spent %}
+                                                {{ user_tickets.latest_ticket.time_spent|floatformat:2 }} seconds
+                                            {% else %}
+                                                0 seconds
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
 
                                 <!-- Options for Latest Ticket -->
                                 <tr class="collapse" id="options-{{ user_tickets.latest_ticket.id }}">
                                     <td colspan="7">
                                         <div class="options-list d-flex justify-content-start">
                                             <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' user_tickets.latest_ticket.id %}">Assign</a>
-
-                                            <div class="dropdown">
-        <button class="btn btn-outline-info dropdown-toggle" type="button" id="statusDropdown-{{ user_tickets.latest_ticket.id }}"
-            data-bs-toggle="dropdown" aria-expanded="false">
-            Status
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="statusDropdown-{{ user_tickets.latest_ticket.id }}">
-            <!-- Dynamically generate status options excluding the current one -->
-            {% for status in ticket_statuses %}
-                {% if status.0 != user_tickets.latest_ticket.status %}
-                    <li>
-                        <a class="dropdown-item change-status"
-                           href="#"
-                           data-ticket-id="{{ user_tickets.latest_ticket.id }}"
-                           data-new-status="{{ status.0 }}">
-                           {{ status.1 }}
-                        </a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
+                                            <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ user_tickets.latest_ticket.id }}">Close Ticket</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -604,84 +584,67 @@ h1 {
                                     <th>Ticket ID</th>
                                     <th>Subject</th>
                                     <th>Status</th>
+                                    <th>Assigned By</th>
+                                    <th>Agent</th>
                                     <th>Assign Time</th>
                                     <th>Action</th>
                                     <th>Time Spent</th>
                                 </tr>
                             </thead>
                             <tbody>
-    {% for ticket in user_tickets.older_tickets %}
-        <tr class="{% if ticket.is_active %}ticket-active{% endif %}">
-            <td>
-                <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ ticket.id }}" aria-expanded="false" aria-controls="options-{{ ticket.id }}">
-                    +
-                </button>
-            </td>
-            <td>{{ ticket.ticket_id }}</td>
-            <td>{{ ticket.subject }}</td>
-            <td id="ticket-status-{{ ticket.id }}">{{ ticket.status }}</td>
-            <td>
-                {% if ticket.assigned_at %}
-                    {{ ticket.assigned_at|date:"Y-m-d H:i:s" }}
-                {% else %}
-                    {{ ticket.created_at|date:"Y-m-d H:i:s" }}
-                {% endif %}
-            </td>
-            <td>
-                <!-- Start Button -->
-                <button class="btn btn-success start-button"
-                        data-ticket-id="{{ ticket.id }}"
-                        data-owner-id="{{ ticket.assigned_to.id }}">
-                    {% if ticket.is_active %}
-                        Stop
-                    {% else %}
-                        Start
-                    {% endif %}
-                </button>
-            </td>
-            <td>
-                <span id="timer-{{ ticket.id }}">
-                    {% if ticket.time_spent %}
-                        {{ ticket.time_spent|floatformat:2 }} seconds
-                    {% else %}
-                        0 seconds
-                    {% endif %}
-                </span>
-            </td>
-        </tr>
+                                {% for ticket in user_tickets.older_tickets %}
+                                    <tr class="{% if ticket.is_active %}ticket-active{% endif %}">
+                                        <td>
+                                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#options-{{ ticket.id }}" aria-expanded="false" aria-controls="options-{{ ticket.id }}">
+                                                +
+                                            </button>
+                                        </td>
+                                        <td>{{ ticket.ticket_id }}</td>
+                                        <td>{{ ticket.subject }}</td>
+                                        <td>{{ ticket.status }}</td>
+                                        <td>{{ ticket.assigned_by.username }}</td>
+                                        <td>{{ ticket.assigned_to.username|default:"Unassigned" }}</td>
+                                        <td>
+                                            {% if ticket.assigned_at %}
+                                                {{ ticket.assigned_at|date:"Y-m-d H:i:s" }}
+                                            {% else %}
+                                                {{ ticket.created_at|date:"Y-m-d H:i:s" }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success start-button"
+                                                    data-ticket-id="{{ ticket.id }}"
+                                                    data-owner-id="{{ ticket.assigned_to.id }}"
+                                                    data-ticket-subject="{{ ticket.subject }}">
+                                                {% if ticket.is_active %}
+                                                    Stop
+                                                {% else %}
+                                                    Start
+                                                {% endif %}
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <span id="timer-{{ ticket.id }}">
+                                                {% if ticket.time_spent %}
+                                                    {{ ticket.time_spent|floatformat:2 }} seconds
+                                                {% else %}
+                                                    0 seconds
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                    </tr>
 
-        <!-- Options for Older Ticket -->
-        <tr class="collapse" id="options-{{ ticket.id }}">
-            <td colspan="7">
-                <div class="options-list d-flex justify-content-start">
-                    <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' ticket.id %}">Assign</a>
-                    <!-- Status Dropdown -->
-                        <div class="dropdown">
-                            <button class="btn btn-outline-info dropdown-toggle" type="button" id="statusDropdown-{{ ticket.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                Status
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="statusDropdown-{{ ticket.id }}">
-                                <!-- Dynamically generate status options excluding the current one -->
-                                {% for status in ticket_statuses %}
-                                    {% if status.0 != ticket.status %}
-                                        <li>
-                                            <a class="dropdown-item change-status"
-                                               href="#"
-                                               data-ticket-id="{{ ticket.id }}"
-                                               data-new-status="{{ status.0 }}">
-                                               {{ status.1 }}
-                                            </a>
-                                        </li>
-                                    {% endif %}
+                                    <!-- Options for Older Ticket -->
+                                    <tr class="collapse" id="options-{{ ticket.id }}">
+                                        <td colspan="7">
+                                            <div class="options-list d-flex justify-content-start">
+                                                <a class="btn btn-outline-primary me-2" href="{% url 'assign_ticket' ticket.id %}">Assign</a>
+                                                <a class="btn btn-outline-danger btn-close-ticket" data-ticket-id="{{ ticket.id }}">Close Ticket</a>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 {% endfor %}
-                            </ul>
-                        </div>
-                </div>
-            </td>
-        </tr>
-    {% endfor %}
-</tbody>
-
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -856,12 +819,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
 </script>
 
 <script>
-let timers = {}; // Store active timers
-let activeTicketId = null; // Track the currently active ticket's ID
+let timers = {};  // Store active timers
+let activeTicketId = null;  // Track the currently active ticket's ID
 
 // Helper function to format time in hh:mm:ss
 function formatTime(seconds) {
@@ -871,177 +833,114 @@ function formatTime(seconds) {
     return `${h}:${m}:${s}`;
 }
 
-// Restore timer states from local storage on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTimers = JSON.parse(localStorage.getItem('timers')) || {};
-
-    // Restore the state of each timer
-    for (const ticketId in savedTimers) {
-        const timerData = savedTimers[ticketId];
-        const timerElement = document.getElementById('timer-' + ticketId);
-        const startButton = document.querySelector(`.start-button[data-ticket-id="${ticketId}"]`);
-
-        if (timerElement && startButton) {
-            if (timerData.running) {
-                // Set button text to "Stop" if the timer was running
-                startButton.textContent = 'Stop';
-
-                // Restore the active ticket ID (only one timer should be active at a time)
-                activeTicketId = ticketId;
-
-                // Calculate the elapsed time since the timer started
-                const elapsedTime = (Date.now() - timerData.startTime) / 1000 + timerData.accumulatedTime;
-                timerElement.textContent = formatTime(elapsedTime);
-
-                // Resume the timer
-                timers[ticketId] = {
-                    startTime: timerData.startTime,
-                    accumulatedTime: timerData.accumulatedTime,
-                    interval: setInterval(() => {
-                        const updatedTime = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
-                        timerElement.textContent = formatTime(updatedTime);
-                    }, 1000)
-                };
-            } else {
-                // If the timer was stopped, reset display to 00:00:00
-                timerElement.textContent = formatTime(0);
-            }
-        }
+// Function to update the page's title (name bar)
+function updatePageTitle(ticketId, subject, action) {
+    if (action === 'start') {
+        document.title = `Working on Ticket: ${ticketId} - ${subject}`;
+    } else {
+        document.title = 'Tickets Overview';  // Reset the title when stopping
     }
+}
 
-    // Start/Stop Timer functionality
-    document.querySelectorAll('.start-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const ticketId = this.dataset.ticketId;
-            const ownerId = this.dataset.ownerId;
-            const currentUserId = "{{ user.id }}";  // Assuming you're passing the current user's ID
+// Start/Stop Timer functionality
+document.querySelectorAll('.start-button').forEach(button => {
+    button.addEventListener('click', function () {
+        const ticketId = this.dataset.ticketId;
+        const subject = this.dataset.ticketSubject;  // Assuming you have the subject stored in the button's dataset
+        const ownerId = this.dataset.ownerId;
+        const currentUserId = "{{ user.id }}";  // Assuming you're passing the current user's ID
 
-            if (ownerId !== currentUserId) {
-                alert('You are not authorized to start/stop this timer.');
-                return;
+        if (ownerId !== currentUserId) {
+            alert('You are not authorized to start/stop this timer.');
+            return;
+        }
+
+        const timerElement = document.getElementById('timer-' + ticketId);
+        const ticketRow = timerElement.closest('tr');  // Get the ticket row element
+        const action = this.textContent.trim() === 'Start' ? 'start' : 'stop';
+
+        // Check if there is already an active timer
+        if (action === 'start' && activeTicketId !== null) {
+            alert('You are already working on a ticket. Stop that timer to start a new one.');
+            return;
+        }
+
+        // Toggle button text
+        this.textContent = action === 'start' ? 'Stop' : 'Start';
+
+        // Toggle the active class on the ticket row
+        ticketRow.classList.toggle('ticket-active', action === 'start');
+
+        // Send the action (start or stop) to the server
+        fetch('/update_ticket_activity/', {
+            method: 'POST',
+            body: JSON.stringify({
+                ticket_id: ticketId,
+                action: action
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token }}"
             }
-
-            const timerElement = document.getElementById('timer-' + ticketId);
-            const ticketRow = timerElement.closest('tr');  // Get the ticket row element
-            const action = this.textContent.trim() === 'Start' ? 'start' : 'stop';
-
-            if (action === 'start' && activeTicketId !== null) {
-                alert('You are already working on a ticket. Stop that timer to start a new one.');
-                return;
-            }
-
-            // Toggle button text
-            this.textContent = action === 'start' ? 'Stop' : 'Start';
-
-            // Toggle the active class on the ticket row
-            ticketRow.classList.toggle('ticket-active', action === 'start');
-
-            // Send the action (start or stop) to the server
-            fetch('/update_ticket_activity/', {
-                method: 'POST',
-                body: JSON.stringify({
-                    ticket_id: ticketId,
-                    action: action
-                }),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': "{{ csrf_token }}"
-                }
-            }).then(response => response.json()).then(data => {
-                if (data.status !== 'success') {
-                    alert('Failed to update ticket activity');
-                }
-            });
-
-            if (action === 'start') {
-                // Reset timer to 00:00:00 on start
-                timerElement.textContent = formatTime(0);
-                const startTime = Date.now();
-                let accumulatedTime = 0;
-
-                // Start the timer
-                timers[ticketId] = {
-                    startTime: startTime,
-                    accumulatedTime: accumulatedTime,
-                    interval: setInterval(() => {
-                        const elapsedTime = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
-                        timerElement.textContent = formatTime(elapsedTime);
-                    }, 1000)
-                };
-
-                // Save timer state to local storage
-                savedTimers[ticketId] = { startTime: startTime, accumulatedTime: accumulatedTime, running: true };
-                localStorage.setItem('timers', JSON.stringify(savedTimers));
-
-                // Set the currently active ticket ID
-                activeTicketId = ticketId;
-
-            } else {
-                clearInterval(timers[ticketId].interval);
-                const timeSpent = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
-
-                // Reset the timer to 00:00:00 after stopping
-                timerElement.textContent = formatTime(0);
-
-                // Save stopped timer state to local storage with accumulatedTime set to 0
-                savedTimers[ticketId] = { accumulatedTime: 0, running: false };
-                localStorage.setItem('timers', JSON.stringify(savedTimers));
-
-                // Clear the active ticket ID
-                activeTicketId = null;
+        }).then(response => response.json()).then(data => {
+            if (data.status !== 'success') {
+                alert('Failed to update ticket activity');
             }
         });
+
+        if (action === 'start') {
+            // Reset timer to 00:00:00 on start
+            timerElement.textContent = formatTime(0);
+            const startTime = Date.now();
+            let accumulatedTime = 0;
+
+            // Start the timer
+            timers[ticketId] = {
+                startTime: startTime,
+                accumulatedTime: accumulatedTime,
+                interval: setInterval(() => {
+                    const elapsedTime = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
+                    timerElement.textContent = formatTime(elapsedTime);
+                }, 1000)
+            };
+
+            // Update the name bar (page title)
+            updatePageTitle(ticketId, subject, 'start');
+
+            // Save timer state to local storage
+            localStorage.setItem('timers', JSON.stringify({
+                startTime: startTime,
+                accumulatedTime: accumulatedTime,
+                running: true
+            }));
+
+            // Set the currently active ticket ID
+            activeTicketId = ticketId;
+
+        } else {
+            clearInterval(timers[ticketId].interval);
+            const timeSpent = (Date.now() - timers[ticketId].startTime) / 1000 + timers[ticketId].accumulatedTime;
+
+            // Reset the timer to 00:00:00 after stopping
+            timerElement.textContent = formatTime(0);
+
+            // Update the name bar (page title) when timer is stopped
+            updatePageTitle(ticketId, subject, 'stop');
+
+            // Save stopped timer state to local storage (accumulated time is saved)
+            localStorage.setItem('timers', JSON.stringify({
+                accumulatedTime: timeSpent,
+                running: false
+            }));
+
+            // Clear the active ticket ID
+            activeTicketId = null;
+        }
     });
 });
 
+
 </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Listen for clicks on all status change links
-    document.querySelectorAll('.change-status').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            const ticketId = this.dataset.ticketId; // Get ticket ID from data attribute
-            const newStatus = this.dataset.newStatus; // Get new status from data attribute
-
-            // Perform AJAX request to update the status
-            fetch('/update_ticket_status/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF token for security
-                },
-                body: JSON.stringify({
-                    ticket_id: ticketId,
-                    new_status: newStatus
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update the status in the corresponding table row
-                    const statusCell = document.querySelector(`#ticket-status-${ticketId}`);
-                    if (statusCell) {
-                        statusCell.textContent = data.new_status_label;  // Update the status text
-                    }
-
-                    // Show a success message, then force a full page reload
-                    alert('Status updated successfully!');
-                    window.location.reload();
-                } else {
-                    // Show an alert if the user is not authorized or any other error occurred
-                    alert(data.message || 'Failed to update status.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while updating the status.');
-            });
-        });
-    });
-});
-</script>
 </body>
 </html>

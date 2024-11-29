@@ -36,5 +36,6 @@ urlpatterns=[
     path('tickets/<int:ticket_id>/stop/', views.stop_work, name='stop_work'),
     path('update_time_spent/', views.update_time_spent, name='update_time_spent'),
     path('update_ticket_activity/', views.update_ticket_activity, name='update_ticket_activity'),
+    path('update_ticket_status/', views.update_ticket_status, name='update_ticket_status'),
 
 ]

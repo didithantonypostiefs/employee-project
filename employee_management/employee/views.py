@@ -35,13 +35,22 @@ from .signals import logged_in_users
 @login_required
 def home(request):
     if request.user.is_authenticated:
+        # Get the employee profile
         employee_profile = EmployeeProfile.objects.get(user=request.user)
+
+        # List of logged in users
         logged_in_users_list = list(logged_in_users)
+
+        # Filter to exclude 'closed' and 'resolved' statuses
         status_filter = ['open', 'pending', 'waiting_on_customer', 'initial_response']
+
+        # Filter tickets assigned to logged in users with the specified statuses
         all_tickets = Ticket.objects.filter(
             assigned_to__in=logged_in_users_list,
             status__in=status_filter
         ).order_by('-created_at')
+
+        # Group tickets by user
         tickets_by_user = {}
         for ticket in all_tickets:
             ticket.created_at_ist = timezone.localtime(ticket.created_at)
@@ -55,10 +64,21 @@ def home(request):
                 }
             else:
                 tickets_by_user[user_id]['older_tickets'].append(ticket)
+
+        # Convert tickets_by_user to a list of users and their tickets
         tickets_by_user = list(tickets_by_user.values())
+
+        # Get all possible ticket statuses for the dropdown
+        ticket_statuses = Ticket._meta.get_field('status').choices
     else:
         tickets_by_user = []
-    return render(request, 'homepage.html', {'tickets_by_user': tickets_by_user,'employee_profile': employee_profile})
+
+    # Render the home template with the ticket data
+    return render(request, 'homepage.html', {
+        'tickets_by_user': tickets_by_user,
+        'employee_profile': employee_profile,
+        'ticket_statuses': ticket_statuses
+    })
 
 
 def register(request):
@@ -295,6 +315,43 @@ def assign_ticket(request, ticket_id):
         'logged_in_users': logged_in_users
     })
 
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
+@login_required
+def update_ticket_status(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            ticket_id = data.get('ticket_id')
+            new_status = data.get('new_status')
+
+            # Validate that both ticket_id and new_status are provided
+            if not ticket_id or not new_status:
+                return JsonResponse({'success': False, 'message': 'Invalid request data'})
+
+            # Fetch the ticket
+            ticket = get_object_or_404(Ticket, id=ticket_id)
+
+            # Check if the current user is the owner of the ticket
+            if ticket.assigned_to != request.user:
+                return JsonResponse({'success': False, 'message': 'You are not authorized to change the status of this ticket'})
+
+            # Update the ticket status
+            ticket.status = new_status
+            ticket.save()
+
+            # Return success response with updated status
+            return JsonResponse({
+                'success': True,
+                'new_status': new_status,
+                'new_status_label': ticket.get_status_display()  # Send the label for display
+            })
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
 from django.utils import timezone
 @login_required
 def add_employee(request):
@@ -468,16 +525,16 @@ def user_activity_view(request, user_id):
 @login_required
 def start_work(request, ticket_id):
     ticket = Ticket.objects.get(id=ticket_id, assigned_to=request.user)
-    print(f"Ticket found: {ticket.ticket_id}")
     if not ticket.work_start_time:
         ticket.start_work()
-    return JsonResponse({'status': 'started'})
+    return JsonResponse({'status': 'started', 'ticket_id': ticket.ticket_id, 'subject': ticket.subject})
 
 @login_required
 def stop_work(request, ticket_id):
     ticket = Ticket.objects.get(id=ticket_id, assigned_to=request.user)
     ticket.pause_work()  # Stop the timer and record the total time
-    return JsonResponse({'status': 'stopped', 'time_spent': ticket.time_spent.total_seconds()})
+    return JsonResponse({'status': 'stopped', 'ticket_id': ticket.ticket_id, 'subject': ticket.subject})
+
 
 
 
