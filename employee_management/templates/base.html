@@ -21,9 +21,27 @@
 <div class="container-fluid">
 
     {% include 'nav.html' %}<br>
+    <!-- Notification Pop-up -->
+    {% if request.session.ticket_notification %}
+        <div id="ticket-notification" class="alert alert-info alert-dismissible fade show" role="alert" style="position:fixed; top:10px; right:10px; z-index: 1050;">
+            <strong>{{ request.session.ticket_notification }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="closeNotification()"></button>
+        </div>
+    {% endif %}
     {% block content %}
     {% endblock %}
 </div>
+    <script>
+    // Remove notification from session after display
+    function closeNotification() {
+        fetch("{% url 'clear_notification' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+    }
+</script>
     <script src="{% static 'js/popper.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

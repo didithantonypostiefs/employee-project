@@ -308,34 +308,65 @@ def close_ticket(request, ticket_id):
         return redirect('home')
     return redirect('home')
 
+
 def assign_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    # Check authorization
     if ticket.assigned_to != request.user and not request.user.employeeprofile.is_admin:
         return render(request, 'homepage.html', {
             'error': "You are not authorized to assign this ticket.",
             'ticket_id': ticket_id,
         })
+
     if request.method == 'POST':
         form = TicketForm(request.POST, instance=ticket)
+
+        # Remove form validation for 'assigned_to' field since it's manually handled
         if form.is_valid():
             ticket = form.save(commit=False)
+
+            # Get the 'assigned_user' from the POST request
             new_assigned_user_id = request.POST.get('assigned_user')
             new_assigned_user = get_object_or_404(User, id=new_assigned_user_id)
+
+            # Set the assigned_to field manually
             ticket.assigned_to = new_assigned_user
             ticket.assigned_by = request.user
             ticket.assigned_at = timezone.now()
             ticket.save()
-            messages.success(request, "Ticket assigned successfully.")
+
+            # Notify the user about the assignment
+            messages.success(request,
+                             f"Ticket {ticket.ticket_id} assigned successfully to {new_assigned_user.username}.")
+
+            # Store the notification in the assigned user's session
+            if new_assigned_user_id != request.user.id:
+                # Get the session for the assigned user
+                active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+                for session in active_sessions:
+                    session_data = session.get_decoded()
+                    if str(new_assigned_user.id) == str(session_data.get('_auth_user_id')):
+                        session_data[
+                            'ticket_notification'] = f"Ticket with ID: {ticket.ticket_id} has been assigned to you."
+                        session.save()
+
+            # Redirect after assignment
             return redirect('view_tickets', user_id=request.user.id)
 
     else:
         form = TicketForm(instance=ticket)
+
+    # Get all active users excluding the current user
     logged_in_users = User.objects.filter(is_active=True).exclude(id=request.user.id)
+
+    # Render the form
     return render(request, 'assign_ticket.html', {
         'ticket': ticket,
         'form': form,
         'logged_in_users': logged_in_users
     })
+
 
 from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
@@ -630,4 +661,11 @@ def toggle_timer(request):
     else:
         user_profile.is_active = True  # Start timer
     user_profile.save()
-    return redirect('home')
+    return (redirect('home'))
+
+@login_required
+def clear_notification(request):
+    if 'ticket_notification' in request.session:
+        del request.session['ticket_notification']
+    return JsonResponse({'status': 'success'})
+

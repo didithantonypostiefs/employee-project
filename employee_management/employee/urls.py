@@ -37,5 +37,6 @@ urlpatterns=[
     path('update_time_spent/', views.update_time_spent, name='update_time_spent'),
     path('update_ticket_activity/', views.update_ticket_activity, name='update_ticket_activity'),
     path('update_ticket_status/', views.update_ticket_status, name='update_ticket_status'),
+    path('clear_notification/', views.clear_notification, name='clear_notification'),
 
 ]

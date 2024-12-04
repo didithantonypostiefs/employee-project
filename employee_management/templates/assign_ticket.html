@@ -18,6 +18,7 @@
         {% csrf_token %}
         <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
 
+        <!-- Display other fields -->
         {{ form.subject.errors }}
         {{ form.subject }}<br><br>
 
@@ -30,6 +31,10 @@
         {{ form.note.errors }}
         {{ form.note }}<br><br>
 
+        {{ form.priority.errors }}
+        {{ form.priority }}<br><br>
+
+        <!-- Reassign to field -->
         <label for="assigned_user">Reassign to:</label>
         <select id="assigned_user" name="assigned_user" class="form-control">
             {% for user in logged_in_users %}
