@@ -38,5 +38,7 @@ urlpatterns=[
     path('update_ticket_activity/', views.update_ticket_activity, name='update_ticket_activity'),
     path('update_ticket_status/', views.update_ticket_status, name='update_ticket_status'),
     path('clear_notification/', views.clear_notification, name='clear_notification'),
+    path('filter-users-by-group/', views.filter_users_by_group, name='filter_users_by_group'),
+    path('mark-notification-as-read/', views.mark_notification_as_read, name='mark_notification_as_read'),
 
 ]

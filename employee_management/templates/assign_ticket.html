@@ -41,6 +41,52 @@
                 <option value="{{ user.id }}" {% if user == ticket.assigned_to %}selected{% endif %}>{{ user.username }}</option>
             {% endfor %}
         </select>
+
         <button type="submit" class="btn btn-primary mt-3">Reassign Ticket</button>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var groupSelect = document.getElementById('id_group');
+            var assignedUserSelect = document.getElementById('assigned_user');
+
+            // Function to fetch users based on the selected group
+            function updateAssignedUserDropdown(group) {
+                if (group) {
+                    fetch('{% url "filter_users_by_group" %}?group=' + group)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear existing options
+                        assignedUserSelect.innerHTML = '<option value="">Select User</option>';
+
+                        // Populate with filtered users
+                        data.users.forEach(function(user) {
+                            var option = document.createElement('option');
+                            option.value = user.id;
+                            option.textContent = user.username;
+                            assignedUserSelect.appendChild(option);
+                        });
+
+                        // If there's a preselected assigned user, retain the selected option
+                        {% if ticket.assigned_to %}
+                        var preselectedUserId = "{{ ticket.assigned_to.id }}";
+                        assignedUserSelect.value = preselectedUserId;
+                        {% endif %}
+                    });
+                }
+            }
+
+            // Listen for changes in the group dropdown
+            groupSelect.addEventListener('change', function() {
+                var selectedGroup = groupSelect.value;
+                updateAssignedUserDropdown(selectedGroup);
+            });
+
+            // On page load, check if a group is already selected and update the dropdown
+            var initialGroup = groupSelect.value;
+            if (initialGroup) {
+                updateAssignedUserDropdown(initialGroup);  // Load relevant users on page load
+            }
+        });
+    </script>
 {% endblock %}

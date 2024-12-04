@@ -68,7 +68,7 @@ class TicketForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['ticket_id', 'subject', 'status', 'group', 'assigned_to', 'note' , 'priority']
+        fields = ['ticket_id', 'subject', 'status', 'group', 'assigned_to', 'note', 'priority']
         widgets = {
             'subject': forms.Textarea(attrs={'rows': 4, 'maxlength': 300}),
             'note': forms.Textarea(attrs={'rows': 4}),
@@ -86,5 +86,6 @@ class TicketForm(forms.ModelForm):
             self.fields['assigned_to'].queryset = logged_in_users.filter(employeeprofile__skill=group)
         else:
             self.fields['assigned_to'].queryset = logged_in_users
+
 
 

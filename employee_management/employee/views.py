@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from .decorators import admin_required
 from .forms import UserEditForm,EmployeeProfileForm,TicketForm
-from .models import EmployeeProfile,Ticket,DailyActivity,SessionActivity
+from .models import EmployeeProfile,Ticket,DailyActivity,SessionActivity,Notification
 from django.http import HttpResponseForbidden, JsonResponse
 from django.db.models import Max
 from django.contrib import auth, messages
@@ -46,6 +46,10 @@ def home(request):
 
         # Handle the filter for skill
         skill_filter = request.GET.get('skill', None)
+
+        # Only fetch unread notifications for the current user
+        notifications = Notification.objects.filter(user=request.user,
+                                                    is_read=False) if request.user.is_authenticated else []
 
         # Filter tickets based on skill if selected, otherwise show all tickets
         if skill_filter:
@@ -95,8 +99,9 @@ def home(request):
     return render(request, 'home.html', {
         'tickets_by_user': tickets_by_user,
         'employee_profile': employee_profile,
-        'skills': skills,                # For the skill filter
-        'ticket_statuses': ticket_statuses  # For the status dropdown
+        'skills': skills,
+        'ticket_statuses': ticket_statuses,
+        'notifications': notifications
     })
 
 
@@ -257,9 +262,11 @@ def create_ticket(request):
 def user_tickets(request, user_id):
     user = get_object_or_404(User, id=user_id)
     tickets = Ticket.objects.filter(assigned_to=user)
+    notifications = Notification.objects.filter(user=request.user, is_read=False)
     return render(request, 'view_tickets.html', {
         'tickets': tickets,
         'user': user,
+        'notifications': notifications,
     })
 
 def view_tickets(request, user_id):
@@ -322,7 +329,6 @@ def assign_ticket(request, ticket_id):
     if request.method == 'POST':
         form = TicketForm(request.POST, instance=ticket)
 
-        # Remove form validation for 'assigned_to' field since it's manually handled
         if form.is_valid():
             ticket = form.save(commit=False)
 
@@ -337,22 +343,16 @@ def assign_ticket(request, ticket_id):
             ticket.save()
 
             # Notify the user about the assignment
-            messages.success(request,
-                             f"Ticket {ticket.ticket_id} assigned successfully to {new_assigned_user.username}.")
+            messages.success(request, f"Ticket {ticket.ticket_id} assigned successfully to {new_assigned_user.username}.")
 
-            # Store the notification in the assigned user's session
+            # Create a notification for the assigned user
             if new_assigned_user_id != request.user.id:
-                # Get the session for the assigned user
-                active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
-                for session in active_sessions:
-                    session_data = session.get_decoded()
-                    if str(new_assigned_user.id) == str(session_data.get('_auth_user_id')):
-                        session_data[
-                            'ticket_notification'] = f"Ticket with ID: {ticket.ticket_id} has been assigned to you."
-                        session.save()
+                Notification.objects.create(
+                    user=new_assigned_user,
+                    message=f"Ticket with ID: {ticket.ticket_id} has been assigned to you."
+                )
 
-            # Redirect after assignment
-            return redirect('view_tickets', user_id=request.user.id)
+            return redirect('home')
 
     else:
         form = TicketForm(instance=ticket)
@@ -360,7 +360,6 @@ def assign_ticket(request, ticket_id):
     # Get all active users excluding the current user
     logged_in_users = User.objects.filter(is_active=True).exclude(id=request.user.id)
 
-    # Render the form
     return render(request, 'assign_ticket.html', {
         'ticket': ticket,
         'form': form,
@@ -669,3 +668,27 @@ def clear_notification(request):
         del request.session['ticket_notification']
     return JsonResponse({'status': 'success'})
 
+
+@login_required
+def filter_users_by_group(request):
+    group = request.GET.get('group')
+
+    if group:
+        # Fetch logged-in users with the selected skill
+        active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+        user_ids = [session.get_decoded().get('_auth_user_id') for session in active_sessions]
+        logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__skill=group)
+
+        # Prepare the data to return as JSON
+        users_data = [{'id': user.id, 'username': user.username} for user in logged_in_users]
+        return JsonResponse({'users': users_data})
+
+    return JsonResponse({'users': []})
+
+@login_required
+def mark_notification_as_read(request):
+    notification_id = request.GET.get('id')
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return JsonResponse({'status': 'success'})
