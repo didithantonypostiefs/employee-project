@@ -38,17 +38,28 @@ def home(request):
         # Get the employee profile
         employee_profile = EmployeeProfile.objects.get(user=request.user)
 
-        # List of logged in users
+        # List of logged-in users
         logged_in_users_list = list(logged_in_users)
 
         # Filter to exclude 'closed' and 'resolved' statuses
         status_filter = ['open', 'pending', 'waiting_on_customer', 'initial_response']
 
-        # Filter tickets assigned to logged in users with the specified statuses
-        all_tickets = Ticket.objects.filter(
-            assigned_to__in=logged_in_users_list,
-            status__in=status_filter
-        ).order_by('-created_at')
+        # Handle the filter for skill
+        skill_filter = request.GET.get('skill', None)
+
+        # Filter tickets based on skill if selected, otherwise show all tickets
+        if skill_filter:
+            all_tickets = Ticket.objects.filter(
+                assigned_to__in=logged_in_users_list,
+                status__in=status_filter,
+                group=skill_filter  # Assuming 'group' is the field for skills
+            ).order_by('-created_at')
+        else:
+            # Show all tickets by default
+            all_tickets = Ticket.objects.filter(
+                assigned_to__in=logged_in_users_list,
+                status__in=status_filter
+            ).order_by('-created_at')
 
         # Group tickets by user
         tickets_by_user = {}
@@ -68,16 +79,24 @@ def home(request):
         # Convert tickets_by_user to a list of users and their tickets
         tickets_by_user = list(tickets_by_user.values())
 
-        # Get all possible ticket statuses for the dropdown
+        # Get all distinct skills for the dropdown, exclude empty values
+        skills = EmployeeProfile.objects.values_list('skill', flat=True).distinct()
+        skills = [skill for skill in skills if skill]  # Remove empty or None skills
+
+        # Get all possible ticket statuses for the status dropdown
         ticket_statuses = Ticket._meta.get_field('status').choices
+
     else:
         tickets_by_user = []
+        skills = []
+        ticket_statuses = []
 
-    # Render the home template with the ticket data
-    return render(request, 'homepage.html', {
+    # Render the home template with the ticket data, skills, and statuses
+    return render(request, 'home.html', {
         'tickets_by_user': tickets_by_user,
         'employee_profile': employee_profile,
-        'ticket_statuses': ticket_statuses
+        'skills': skills,                # For the skill filter
+        'ticket_statuses': ticket_statuses  # For the status dropdown
     })
 
 
@@ -221,15 +240,18 @@ def create_ticket(request):
             return redirect('/')
     else:
         form = TicketForm()
+
     active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = [session.get_decoded().get('_auth_user_id') for session in active_sessions]
     logged_in_users = User.objects.filter(id__in=user_ids, is_active=True, employeeprofile__is_on_break=False)
     employees = logged_in_users.values('id', 'username', 'employeeprofile__skill')
+
     context = {
         'form': form,
         'employees': list(employees),
     }
     return render(request, 'create_ticket.html', context)
+
 
 @login_required
 def user_tickets(request, user_id):

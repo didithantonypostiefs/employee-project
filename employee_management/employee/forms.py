@@ -68,10 +68,11 @@ class TicketForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['ticket_id', 'subject', 'status', 'group', 'assigned_to', 'note']
+        fields = ['ticket_id', 'subject', 'status', 'group', 'assigned_to', 'note' , 'priority']
         widgets = {
             'subject': forms.Textarea(attrs={'rows': 4, 'maxlength': 300}),
             'note': forms.Textarea(attrs={'rows': 4}),
+            'priority': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):

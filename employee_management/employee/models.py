@@ -97,6 +97,12 @@ class Ticket(models.Model):
         ('LEVELONE', 'Level One'),
         ('OCI', 'OCI'),
     ])
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='user_tickets')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_tickets')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -105,14 +111,11 @@ class Ticket(models.Model):
                                     related_name='assigner_tickets')
     created_at = models.DateTimeField(auto_now_add=True)
     assigned_at = models.DateTimeField(null=True, blank=True)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='low')
     note = models.TextField(blank=True)
     work_start_time = models.DateTimeField(null=True, blank=True)  # When the user clicks start
     time_spent = models.DurationField(default=timezone.timedelta(0))
     is_active = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        managed = False
 
 
     def start_work(self):
