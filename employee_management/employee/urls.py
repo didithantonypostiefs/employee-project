@@ -40,5 +40,5 @@ urlpatterns=[
     path('clear_notification/', views.clear_notification, name='clear_notification'),
     path('filter-users-by-group/', views.filter_users_by_group, name='filter_users_by_group'),
     path('mark-notification-as-read/', views.mark_notification_as_read, name='mark_notification_as_read'),
-
+    path('dashboard/', views.dashboard, name='dashboard'),
 ]

@@ -141,7 +141,7 @@ def login(request):
             user_profile, created = EmployeeProfile.objects.get_or_create(user=user)
             user_profile.is_active = True
             user_profile.save()
-            return redirect('/')
+            return redirect('dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
             return render(request, 'index.html', {'form': {'non_field_errors': ['Invalid username or password.']}})
@@ -692,3 +692,40 @@ def mark_notification_as_read(request):
     notification.is_read = True
     notification.save()
     return JsonResponse({'status': 'success'})
+
+from django.db import models  # <-- Add this import
+@login_required
+def dashboard(request):
+    user = request.user
+
+    # Get the employee profile for the logged-in user
+    try:
+        employee_profile = EmployeeProfile.objects.get(user=user)
+    except EmployeeProfile.DoesNotExist:
+        employee_profile = None
+
+    # Total number of tickets for the user
+    total_tickets = Ticket.objects.filter(assigned_to=user).count()
+
+    # Count of tickets by status
+    ticket_status_counts = Ticket.objects.filter(assigned_to=user).values('status').annotate(count=models.Count('status'))
+
+    # Total time spent on tickets (sum of all time_spent)
+    total_time_spent = Ticket.objects.filter(assigned_to=user).aggregate(total_time=models.Sum('time_spent'))['total_time']
+    total_time_spent_hours = total_time_spent.total_seconds() / 3600 if total_time_spent else 0
+
+    # Fetch all tickets assigned to the user
+    tickets = Ticket.objects.filter(assigned_to=user).order_by('-created_at')
+
+    ticket_statuses = Ticket._meta.get_field('status').choices
+
+    context = {
+        'employee_profile': employee_profile,
+        'total_tickets': total_tickets,
+        'ticket_status_counts': ticket_status_counts,
+        'total_time_spent': total_time_spent_hours,
+        'tickets': tickets,
+        'ticket_statuses':ticket_statuses,
+    }
+
+    return render(request, 'dashboard.html', context)
