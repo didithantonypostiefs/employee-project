@@ -96,7 +96,7 @@ def home(request):
         ticket_statuses = []
 
     # Render the home template with the ticket data, skills, and statuses
-    return render(request, 'home.html', {
+    return render(request, 'testing_home.html', {
         'tickets_by_user': tickets_by_user,
         'employee_profile': employee_profile,
         'skills': skills,
