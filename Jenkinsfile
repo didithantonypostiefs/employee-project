@@ -1,11 +1,10 @@
 pipeline {
-    agent { label 'employeemanagement-192.168.201.197' }
+    agent { label 'employeemanagement-192.168.209.9' }
     stages {
-        stage('Deploy') {
+        stage('Deploy') { 
             steps {
-                sh './jenkins/scripts/deploy.sh'
+                sh './jenkins/scripts/deploy.sh'  
             }
         }
-            }
-        }
-
+    }
+}
